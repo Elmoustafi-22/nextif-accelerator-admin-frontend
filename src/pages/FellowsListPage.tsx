@@ -16,7 +16,7 @@ import { cn } from "../utils/cn";
 import { motion } from "framer-motion";
 import { toast } from "../store/useToastStore";
 
-import AmbassadorDetailsModal from "../components/AmbassadorDetailsModal";
+import FellowDetailsModal from "../components/FellowDetailsModal";
 
 const FellowsListPage = () => {
   const [ambassadors, setAmbassadors] = useState([]);
@@ -337,8 +337,8 @@ const FellowsListPage = () => {
         )}
       </div>
 
-      <AmbassadorDetailsModal
-        ambassador={selectedAmbassador}
+      <FellowDetailsModal
+        fellow={selectedAmbassador}
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
         onStatusUpdate={handleStatusUpdate}
