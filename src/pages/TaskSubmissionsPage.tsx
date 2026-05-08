@@ -10,7 +10,6 @@ import {
   ListChecks,
   AlertCircle,
   RefreshCcw,
-  Calendar as CalendarIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../api/axiosInstance";
@@ -27,10 +26,8 @@ const TaskSubmissionsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [remarks, setRemarks] = useState<{ [key: string]: string }>({});
-  const [redoDueDates, setRedoDueDates] = useState<{ [key: string]: string }>(
-    {}
-  );
   const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<"UNVERIFIED" | "VERIFIED" | "REDO">("UNVERIFIED");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,7 +35,7 @@ const TaskSubmissionsPage = () => {
         setLoading(true);
         const [taskRes, submissionsRes] = await Promise.all([
           axiosInstance.get(`/tasks/${id}`),
-          axiosInstance.get(`/tasks/submissions?taskId=${id}`), // Need to verify if this endpoint exists or should be handled
+          axiosInstance.get(`/tasks/submissions?taskId=${id}`),
         ]);
         setTask(taskRes.data);
         setSubmissions(submissionsRes.data);
@@ -56,8 +53,8 @@ const TaskSubmissionsPage = () => {
     submissionId: string,
     status: "COMPLETED" | "REJECTED" | "REDO"
   ) => {
-    if (status === "REDO" && !redoDueDates[submissionId]) {
-      toast.warning("Please specify a new due date for the redo.");
+    if (status === "REDO" && !remarks[submissionId]) {
+      toast.warning("Please provide a reason for the redo request.");
       return;
     }
     try {
@@ -67,42 +64,23 @@ const TaskSubmissionsPage = () => {
         {
           status,
           feedback: remarks[submissionId] || "",
-          newDueDate: redoDueDates[submissionId],
         }
       );
 
-      // Update local state immediately (in place) to show "Approved"
       setSubmissions((prev) =>
         prev.map((s) => (s._id === submissionId ? res.data : s))
       );
 
-      // Clear remark
       setRemarks((prev) => {
         const next = { ...prev };
         delete next[submissionId];
         return next;
       });
 
-      // Show modal if status is COMPLETED
       if (status === "COMPLETED") {
         setShowAcceptModal(true);
         setTimeout(() => setShowAcceptModal(false), 2000);
       }
-
-      // Reorder after a delay so user sees the updated state first
-      setTimeout(() => {
-        setSubmissions((prev) => {
-          // We need to re-sort based on the *current* state of prev
-          // which should already have the updated item from the first setSubmissions
-          const pending = prev.filter(
-            (s) => s.status === "SUBMITTED" || s.status === "REDO"
-          );
-          const completed = prev.filter(
-            (s) => s.status === "COMPLETED" || s.status === "REJECTED"
-          );
-          return [...pending, ...completed];
-        });
-      }, 2000); // 2 seconds delay
     } catch (err) {
       console.error("Verification failed:", err);
       toast.error("Failed to update status");
@@ -111,12 +89,20 @@ const TaskSubmissionsPage = () => {
     }
   };
 
+  const filteredSubmissions = submissions.filter((s) => {
+    if (activeTab === "UNVERIFIED") return s.status === "SUBMITTED";
+    if (activeTab === "VERIFIED") return s.status === "COMPLETED";
+    if (activeTab === "REDO") return s.status === "REDO";
+    return false;
+  });
+
   if (loading)
     return (
       <div className="p-8 animate-pulse text-center">
         Loading submissions...
       </div>
     );
+
   if (error)
     return (
       <div className="p-8 text-center">
@@ -133,26 +119,55 @@ const TaskSubmissionsPage = () => {
         </div>
       </div>
     );
+
   if (!task)
     return <div className="p-8 text-center text-red-500">Task not found.</div>;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="max-w-6xl mx-auto space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <button
           onClick={() => navigate("/tasks")}
-          className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors font-medium border-none bg-transparent cursor-pointer"
+          className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors font-medium border-none bg-transparent cursor-pointer w-fit"
         >
           <ArrowLeft size={20} /> Back to Tasks
         </button>
-        <div className="text-right">
+        <div className="text-left md:text-right">
           <h1 className="text-2xl font-bold font-heading text-neutral-900">
             {task.title}
           </h1>
           <p className="text-xs text-neutral-500 font-heading font-medium">
-            Reviewing {submissions.length} submissions
+            Manage submissions for this one-time task
           </p>
         </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-neutral-100 bg-white p-1 rounded-2xl shadow-sm w-fit">
+        {[
+          { id: "UNVERIFIED", label: "Unverified", count: submissions.filter(s => s.status === 'SUBMITTED').length },
+          { id: "VERIFIED", label: "Verified", count: submissions.filter(s => s.status === 'COMPLETED').length },
+          { id: "REDO", label: "Redo Requested", count: submissions.filter(s => s.status === 'REDO').length },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={cn(
+              "px-6 py-2.5 rounded-xl text-sm font-bold font-heading transition-all flex items-center gap-2",
+              activeTab === tab.id
+                ? "bg-blue-600 text-white shadow-lg shadow-blue-100"
+                : "text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50"
+            )}
+          >
+            {tab.label}
+            <span className={cn(
+              "px-2 py-0.5 rounded-full text-[10px]",
+              activeTab === tab.id ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"
+            )}>
+              {tab.count}
+            </span>
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -160,7 +175,7 @@ const TaskSubmissionsPage = () => {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white rounded-3xl border border-neutral-100 p-6 shadow-sm">
             <h3 className="text-sm font-bold text-neutral-900 mb-4 uppercase tracking-wider text-[10px]">
-              Task Requirements
+              Task Instructions
             </h3>
             <div className="space-y-4">
               {(task.whatToDo || task.steps)?.map((item: any, idx: number) => (
@@ -172,7 +187,7 @@ const TaskSubmissionsPage = () => {
                     <p className="text-xs font-bold text-neutral-800">
                       {item.title}
                     </p>
-                    <p className="text-[10px] text-neutral-500 leading-relaxed line-clamp-2">
+                    <p className="text-[10px] text-neutral-500 leading-relaxed">
                       {item.description}
                     </p>
                   </div>
@@ -183,32 +198,35 @@ const TaskSubmissionsPage = () => {
 
           <div className="bg-neutral-900 rounded-3xl p-6 text-white shadow-xl">
             <h3 className="font-bold font-heading mb-4 flex items-center gap-2">
-              <AlertCircle size={18} className="text-blue-400" /> Review Policy
+              <AlertCircle size={18} className="text-blue-400" /> Verification Info
             </h3>
-            <p className="text-xs text-neutral-400 leading-relaxed space-y-2">
-              Please verify that each response accurately addresses the
-              requirement instructions. If proof files or links are required,
-              ensure they are accessible and valid.
+            <p className="text-xs text-neutral-400 leading-relaxed">
+              Once verified, the fellow will receive an automated email and 
+              <strong> ${task.rewardPoints} points</strong> will be added to their profile.
             </p>
           </div>
         </div>
 
         {/* Submissions List Column */}
         <div className="lg:col-span-2 space-y-6">
-          {submissions.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-dotted border-neutral-300 p-12 text-center text-neutral-500">
-              No submissions yet for this task.
+          {filteredSubmissions.length === 0 ? (
+            <div className="bg-white rounded-4xl border border-dashed border-neutral-200 p-16 text-center">
+              <div className="w-16 h-16 bg-neutral-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <ListChecks className="text-neutral-300" size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-neutral-900">No submissions found</h3>
+              <p className="text-sm text-neutral-500 mt-1">There are no tasks in the {activeTab.toLowerCase()} category.</p>
             </div>
           ) : (
-            submissions.map((sub: any) => (
+            filteredSubmissions.map((sub: any) => (
               <div
                 key={sub._id}
-                className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden border-l-4 border-l-neutral-200 hover:border-l-blue-500 transition-all"
+                className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden hover:shadow-md transition-all"
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-900 font-bold">
+                      <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center font-bold">
                         {sub.ambassadorId?.firstName?.[0]}
                         {sub.ambassadorId?.lastName?.[0]}
                       </div>
@@ -217,215 +235,109 @@ const TaskSubmissionsPage = () => {
                           {sub.ambassadorId?.firstName}{" "}
                           {sub.ambassadorId?.lastName}
                         </h4>
-                        <p className="text-[10px] text-neutral-400 flex items-center gap-1">
+                        <p className="text-[10px] text-neutral-400 flex items-center gap-1 font-medium">
                           <Clock size={12} />{" "}
                           {new Date(sub.submittedAt).toLocaleString()}
                         </p>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span
-                        className={cn(
-                          "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                          sub.status === "COMPLETED"
-                            ? "bg-green-100 text-green-700"
-                            : sub.status === "REJECTED"
-                              ? "bg-red-100 text-red-700"
-                              : sub.status === "REDO"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-blue-100 text-blue-700"
-                        )}
-                      >
-                        {sub.status === "SUBMITTED"
-                          ? "PENDING REVIEW"
-                          : sub.status === "REDO"
-                            ? "REDO REQUESTED"
-                            : sub.status}
-                      </span>
-                      {sub.reviewedBy && (
-                        <span className="text-[9px] text-neutral-400 font-medium italic">
-                          Reviewed by {sub.reviewedBy.firstName}{" "}
-                          {sub.reviewedBy.lastName}
-                        </span>
-                      )}
-                    </div>
+                    {sub.reviewedBy && (
+                        <div className="text-right">
+                          <span className="text-[9px] text-neutral-400 font-bold uppercase block">Last Reviewed By</span>
+                          <span className="text-[11px] text-neutral-600 font-bold">
+                            {sub.reviewedBy.firstName} {sub.reviewedBy.lastName}
+                          </span>
+                        </div>
+                    )}
                   </div>
 
-                  {/* Interleaved Responses */}
+                  {/* Responses */}
                   <div className="space-y-4 mb-6">
-                    <h5 className="text-[10px] font-bold font-heading text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                      <ListChecks size={14} /> Submission Responses
-                    </h5>
-                    <div className="space-y-4">
-                      {(task.whatToDo || task.steps)?.map(
-                        (guide: any, idx: number) => {
-                          const response = sub.responses?.find(
-                            (r: any) => r.whatToDoId === guide._id
-                          );
-                          return (
-                            <div
-                              key={guide._id || idx}
-                              className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100/50 space-y-2"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-neutral-400">
-                                  ITEM {idx + 1}: {guide.title}
-                                </span>
-                              </div>
-                              <p className="text-sm text-neutral-700 leading-relaxed font-medium">
-                                {response?.text || (
-                                  <span className="text-red-400 italic font-normal">
-                                    No response provided for this item.
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
+                    {(task.whatToDo || task.steps)?.map((guide: any, idx: number) => {
+                      const response = sub.responses?.find((r: any) => r.whatToDoId === guide._id);
+                      return (
+                        <div key={guide._id || idx} className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100/50">
+                          <p className="text-[10px] font-bold text-neutral-400 mb-1 uppercase tracking-wider">{idx + 1}. {guide.title}</p>
+                          <p className="text-sm text-neutral-800 font-medium">{response?.text || "No text provided"}</p>
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {/* General Remarks / Links / Files */}
-                  {(sub.content ||
-                    sub.links?.length > 0 ||
-                    sub.proofFiles?.length > 0) && (
-                      <div className="space-y-4 pt-6 border-t border-neutral-50">
-                        {sub.content && (
-                          <div>
-                            <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-2">
-                              General Remarks
-                            </label>
-                            <p className="text-sm text-neutral-600 bg-neutral-50/50 p-4 rounded-2xl italic">
-                              "{sub.content}"
-                            </p>
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {sub.links &&
-                            sub.links.length > 0 &&
-                            sub.links[0] !== "" && (
-                              <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-                                  Links
-                                </label>
-                                {sub.links
-                                  .filter(Boolean)
-                                  .map((link: string, lIdx: number) => (
-                                    <a
-                                      key={lIdx}
-                                      href={link}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="flex items-center gap-2 text-xs text-blue-600 hover:underline"
-                                    >
-                                      <ExternalLink size={12} /> {link}
-                                    </a>
-                                  ))}
-                              </div>
-                            )}
-                          {sub.proofFiles && sub.proofFiles.length > 0 && (
-                            <div className="space-y-2">
-                              <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-                                Attachments
-                              </label>
-                              {sub.proofFiles
-                                .filter(Boolean)
-                                .map((file: string, fIdx: number) => (
-                                  <a
-                                    key={fIdx}
-                                    href={file}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 text-xs text-neutral-600 hover:text-blue-600"
-                                  >
-                                    <Paperclip size={12} />{" "}
-                                    {file?.split("/").pop() || "Attachment"}
-                                  </a>
-                                ))}
-                            </div>
-                          )}
-                        </div>
+                  {/* Attachments & Links */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    {sub.links?.length > 0 && sub.links[0] !== "" && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Links</label>
+                        {sub.links.filter(Boolean).map((link: string, lIdx: number) => (
+                          <a key={lIdx} href={link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-blue-600 hover:underline font-bold">
+                            <ExternalLink size={12} /> {link.length > 30 ? link.substring(0, 30) + '...' : link}
+                          </a>
+                        ))}
                       </div>
                     )}
-
-                  {/* Action Buttons - Show for SUBMITTED, COMPLETED (for redo/remarks), or REDO (to re-evaluate) */}
-                  {(sub.status === "SUBMITTED" ||
-                    sub.status === "COMPLETED" ||
-                    sub.status === "REDO") && (
-                      <div className="mt-8 space-y-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-                            Admin Remarks (Optional)
-                          </label>
-                          <textarea
-                            className="w-full text-sm p-4 rounded-2xl bg-neutral-50 border border-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none h-24"
-                            placeholder="Provide feedback for the fellow..."
-                            value={remarks[sub._id] || ""}
-                            onChange={(e) =>
-                              setRemarks({
-                                ...remarks,
-                                [sub._id]: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div className="flex flex-wrap gap-4">
-                          <Button
-                            className="flex-1 bg-green-600 hover:bg-green-700 border-none h-11"
-                            onClick={() => handleVerify(sub._id, "COMPLETED")}
-                            disabled={
-                              verifyingId === sub._id ||
-                              sub.status === "COMPLETED"
-                            }
-                            isLoading={verifyingId === sub._id}
-                            leftIcon={<CheckCircle2 size={18} />}
-                          >
-                            {sub.status === "COMPLETED" ? "Approved" : "Approve"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="flex-1 border-amber-200 text-amber-600 hover:bg-amber-50 h-11"
-                            onClick={() => handleVerify(sub._id, "REDO")}
-                            disabled={verifyingId === sub._id}
-                            isLoading={verifyingId === sub._id}
-                            leftIcon={<RefreshCcw size={18} />}
-                          >
-                            Request Redo
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="flex-1 border-red-200 text-red-600 hover:bg-red-50 h-11"
-                            onClick={() => handleVerify(sub._id, "REJECTED")}
-                            disabled={verifyingId === sub._id}
-                            isLoading={verifyingId === sub._id}
-                            leftIcon={<XCircle size={18} />}
-                          >
-                            Reject
-                          </Button>
-                        </div>
-
-                        {/* Redo Due Date Picker */}
-                        <div className="pt-2">
-                          <div className="flex items-center gap-2 text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">
-                            <CalendarIcon size={14} /> New Due Date (Required for
-                            Redo)
-                          </div>
-                          <input
-                            type="datetime-local"
-                            className="w-full text-sm p-3 rounded-xl bg-neutral-50 border border-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            value={redoDueDates[sub._id] || ""}
-                            onChange={(e) =>
-                              setRedoDueDates({
-                                ...redoDueDates,
-                                [sub._id]: e.target.value,
-                              })
-                            }
-                          />
-                        </div>
+                    {sub.proofFiles?.length > 0 && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Attachments</label>
+                        {sub.proofFiles.filter(Boolean).map((file: string, fIdx: number) => (
+                          <a key={fIdx} href={file} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-neutral-600 hover:text-blue-600 font-bold">
+                            <Paperclip size={12} /> {file?.split("/").pop()?.substring(0, 20)}
+                          </a>
+                        ))}
                       </div>
                     )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-6 border-t border-neutral-50 space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                        {activeTab === 'REDO' ? 'Update Feedback' : 'Admin Feedback / Redo Reason'}
+                      </label>
+                      <textarea
+                        className="w-full text-sm p-4 rounded-2xl bg-neutral-50 border border-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none h-20"
+                        placeholder="Why is a redo needed? or General remarks..."
+                        value={remarks[sub._id] || sub.adminFeedback || ""}
+                        onChange={(e) => setRemarks({ ...remarks, [sub._id]: e.target.value })}
+                      />
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      <Button
+                        className="flex-1 bg-green-600 hover:bg-green-700 border-none h-11"
+                        onClick={() => handleVerify(sub._id, "COMPLETED")}
+                        disabled={verifyingId === sub._id || sub.status === "COMPLETED"}
+                        isLoading={verifyingId === sub._id}
+                        leftIcon={<CheckCircle2 size={18} />}
+                      >
+                        Verify & Award Points
+                      </Button>
+                      
+                      {activeTab !== 'REDO' && (
+                        <Button
+                          variant="outline"
+                          className="flex-1 border-amber-200 text-amber-600 hover:bg-amber-50 h-11"
+                          onClick={() => handleVerify(sub._id, "REDO")}
+                          disabled={verifyingId === sub._id}
+                          isLoading={verifyingId === sub._id}
+                          leftIcon={<RefreshCcw size={18} />}
+                        >
+                          Request Redo
+                        </Button>
+                      )}
+
+                      <Button
+                        variant="outline"
+                        className="flex-1 border-red-200 text-red-600 hover:bg-red-50 h-11"
+                        onClick={() => handleVerify(sub._id, "REJECTED")}
+                        disabled={verifyingId === sub._id}
+                        isLoading={verifyingId === sub._id}
+                        leftIcon={<XCircle size={18} />}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))
@@ -433,32 +345,13 @@ const TaskSubmissionsPage = () => {
         </div>
       </div>
 
-      {/* Acceptance Modal */}
       <AnimatePresence>
         {showAcceptModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full text-center"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              >
-                <CheckCircle2
-                  size={64}
-                  className="mx-auto mb-4 text-green-500"
-                />
-              </motion.div>
-              <h2 className="text-3xl font-bold text-neutral-900 mb-2">
-                Accepted!
-              </h2>
-              <p className="text-neutral-600">
-                The task submission has been approved successfully.
-              </p>
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full text-center">
+              <CheckCircle2 size={64} className="mx-auto mb-4 text-green-500" />
+              <h2 className="text-3xl font-bold text-neutral-900 mb-2">Verified!</h2>
+              <p className="text-neutral-600">Fellow has been notified and points awarded.</p>
             </motion.div>
           </div>
         )}

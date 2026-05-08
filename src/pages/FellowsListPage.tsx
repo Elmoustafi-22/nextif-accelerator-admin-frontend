@@ -140,10 +140,10 @@ const FellowsListPage = () => {
         {/* ... header content ... */}
         <div>
           <h1 className="text-2xl font-bold text-neutral-900">
-            Ambassador Management
+            Fellow Management
           </h1>
           <p className="text-neutral-500 text-sm">
-            View, onboard, and manage all ambassadors.
+            View, onboard, and manage all fellows.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -155,7 +155,7 @@ const FellowsListPage = () => {
             className="gap-2"
             onClick={() => setIsModalOpen(true)}
           >
-            <UserPlus size={16} /> New Ambassador
+            <UserPlus size={16} /> New Fellow
           </Button>
         </div>
       </div>
@@ -194,7 +194,7 @@ const FellowsListPage = () => {
             <thead>
               <tr className="bg-neutral-50/50 border-b border-neutral-100">
                 <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-heading font-bold text-neutral-400 uppercase tracking-wider">
-                  Ambassador
+                  Fellow
                 </th>
                 <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-heading font-bold text-neutral-400 uppercase tracking-wider">
                   Status
@@ -346,7 +346,7 @@ const FellowsListPage = () => {
         onDelete={handleDelete}
       />
 
-      {/* Add Ambassador Modal */}
+      {/* Add Fellow Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <motion.div
@@ -361,7 +361,7 @@ const FellowsListPage = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-neutral-900">
-                    Add Ambassador
+                    Add Fellow
                   </h2>
                   <p className="text-xs text-neutral-500 font-medium">
                     Create a new ambassador account

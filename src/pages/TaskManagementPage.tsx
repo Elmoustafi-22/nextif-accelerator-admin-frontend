@@ -47,8 +47,8 @@ const TaskManagementPage = () => {
   const [formData, setFormData] = useState({
     title: "",
     explanation: "",
-    type: "WEEKLY",
-    verificationType: "AUTO",
+    type: "ADHOC",
+    verificationType: "ADMIN",
     dueDate: "",
     assignedTo: [] as string[],
     rewardPoints: 0,
@@ -112,8 +112,8 @@ const TaskManagementPage = () => {
       setFormData({
         title: "",
         explanation: "",
-        type: "WEEKLY",
-        verificationType: "AUTO",
+        type: "ADHOC",
+        verificationType: "ADMIN",
         dueDate: "",
         assignedTo: [],
         rewardPoints: 0,
@@ -280,8 +280,8 @@ const TaskManagementPage = () => {
             setFormData({
               title: "",
               explanation: "",
-              type: "WEEKLY",
-              verificationType: "AUTO",
+              type: "ADHOC",
+              verificationType: "ADMIN",
               dueDate: "",
               assignedTo: [],
               rewardPoints: 0,
@@ -587,85 +587,32 @@ const TaskManagementPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-                        Frequency
-                      </label>
-                      <div className="flex bg-neutral-50 p-1 rounded-xl border border-neutral-100">
-                        {(["WEEKLY", "MONTHLY", "ADHOC"] as const).map(
-                          (type) => (
-                            <button
-                              key={type}
-                              type="button"
-                              onClick={() => setFormData({ ...formData, type })}
-                              className={cn(
-                                "flex-1 py-2 text-xs font-bold rounded-lg transition-all",
-                                formData.type === type
-                                  ? "bg-white text-blue-600 shadow-sm"
-                                  : "text-neutral-400 hover:text-neutral-600"
-                              )}
-                            >
-                              {type}
-                            </button>
-                          )
-                        )}
-                      </div>
-                    </div>
+                    <Input
+                      label="Due Date"
+                      type="date"
+                      required
+                      value={formData.dueDate}
+                      onChange={(e) =>
+                        setFormData({ ...formData, dueDate: e.target.value })
+                      }
+                      icon={<Calendar size={16} className="text-neutral-400" />}
+                    />
 
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-                        Verification
-                      </label>
-                      <div className="flex bg-neutral-50 p-1 rounded-xl border border-neutral-100">
-                        {(["AUTO", "ADMIN"] as const).map((vType) => (
-                          <button
-                            key={vType}
-                            type="button"
-                            onClick={() =>
-                              setFormData({
-                                ...formData,
-                                verificationType: vType,
-                              })
-                            }
-                            className={cn(
-                              "flex-1 py-2 text-xs font-bold rounded-lg transition-all",
-                              formData.verificationType === vType
-                                ? "bg-white text-blue-600 shadow-sm"
-                                : "text-neutral-400 hover:text-neutral-600"
-                            )}
-                          >
-                            {vType === "AUTO" ? "Auto-Verify" : "Admin Review"}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    <Input
+                      label="Reward Points"
+                      type="number"
+                      placeholder="e.g. 50"
+                      required
+                      min="0"
+                      value={formData.rewardPoints}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          rewardPoints: parseInt(e.target.value) || 0,
+                        })
+                      }
+                    />
                   </div>
-
-                  <Input
-                    label="Due Date"
-                    type="date"
-                    required
-                    value={formData.dueDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, dueDate: e.target.value })
-                    }
-                    icon={<Calendar size={16} className="text-neutral-400" />}
-                  />
-
-                  <Input
-                    label="Reward Points"
-                    type="number"
-                    placeholder="e.g. 50"
-                    required
-                    min="0"
-                    value={formData.rewardPoints}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        rewardPoints: parseInt(e.target.value) || 0,
-                      })
-                    }
-                  />
 
                   <div className="flex items-center gap-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-100">
                     <label className="flex items-center gap-3 cursor-pointer group">

@@ -21,13 +21,12 @@ const AnnouncementsPage = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ title: "", body: "" });
+  const [formData, setFormData] = useState({ title: "", body: "", link: "" });
   const [success, setSuccess] = useState(false);
 
   const fetchHistory = async () => {
     try {
       const response = await axiosInstance.get("/notifications/admin/history");
-      // Since broadcast creates individual notifications, we'll deduplicate by title and createdAt for the UI history
       const raw = response.data;
       const seen = new Set();
       const unique = raw.filter((item: any) => {
@@ -58,7 +57,7 @@ const AnnouncementsPage = () => {
       setSuccess(true);
       setTimeout(() => {
         setIsModalOpen(false);
-        setFormData({ title: "", body: "" });
+        setFormData({ title: "", body: "", link: "" });
         setSuccess(false);
         fetchHistory();
       }, 1500);
@@ -183,6 +182,11 @@ const AnnouncementsPage = () => {
                         <p className="text-sm text-neutral-500 leading-relaxed max-w-2xl">
                           {item.body}
                         </p>
+                        {item.link && (
+                          <div className="mt-3 flex items-center gap-2 text-[10px] text-blue-600 font-bold uppercase tracking-widest">
+                            <Send size={12} /> Link: {item.link}
+                          </div>
+                        )}
                       </div>
                       <div className="text-neutral-300 group-hover:text-blue-600 transition-colors self-center">
                         <ChevronRight size={20} />
@@ -231,7 +235,7 @@ const AnnouncementsPage = () => {
               <form onSubmit={handleSend} className="p-8 space-y-6">
                 <Input
                   label="Announcement Title"
-                  placeholder="e.g. New Task Rewards are Live!"
+                  placeholder="e.g. Upcoming Meeting Reminder"
                   required
                   value={formData.title}
                   onChange={(e) =>
@@ -248,18 +252,30 @@ const AnnouncementsPage = () => {
                     </span>
                   </label>
                   <textarea
-                    className="w-full bg-neutral-50 border border-neutral-100 rounded-3xl p-5 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all min-h-[180px] font-medium placeholder:text-neutral-300 leading-relaxed"
-                    placeholder="Provide details about the update or event..."
+                    className="w-full bg-neutral-50 border border-neutral-100 rounded-3xl p-5 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all min-h-[120px] font-medium placeholder:text-neutral-300 leading-relaxed"
+                    placeholder="Provide details about the meeting or update..."
                     required
                     value={formData.body}
                     onChange={(e) =>
                       setFormData({ ...formData, body: e.target.value })
                     }
                   />
-                  <div className="flex items-center gap-2 text-[10px] text-neutral-400 font-bold uppercase tracking-widest px-1">
-                    <Clock size={12} />
-                    Sent instantly to all ambassadors
-                  </div>
+                </div>
+
+                <Input
+                  label="Action Link (Optional)"
+                  placeholder="e.g. https://zoom.us/j/..."
+                  value={formData.link}
+                  onChange={(e) =>
+                    setFormData({ ...formData, link: e.target.value })
+                  }
+                  className="h-14 font-medium"
+                  icon={<Send size={16} className="text-neutral-400" />}
+                />
+
+                <div className="flex items-center gap-2 text-[10px] text-neutral-400 font-bold uppercase tracking-widest px-1">
+                  <Clock size={12} />
+                  Sent via Email & In-App to all fellows
                 </div>
 
                 <div className="flex gap-4 pt-4">
