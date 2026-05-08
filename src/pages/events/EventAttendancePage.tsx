@@ -28,6 +28,7 @@ const EventAttendancePage = () => {
   const [eventTitle, setEventTitle] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [globalPoints, setGlobalPoints] = useState(5); // Default to 5 points
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,7 +53,13 @@ const EventAttendancePage = () => {
   ) => {
     setAttendees((prev) =>
       prev.map((a) =>
-        a._id === ambassadorId ? { ...a, attendanceStatus: status } : a
+        a._id === ambassadorId
+          ? {
+            ...a,
+            attendanceStatus: status,
+            marks: status === "PRESENT" ? globalPoints : 0,
+          }
+          : a
       )
     );
   };
@@ -127,9 +134,20 @@ const EventAttendancePage = () => {
             </span>
           </div>
         </div>
-        <Button onClick={handleSave} isLoading={saving}>
-          Save Attendance
-        </Button>
+        <div className="flex items-center gap-4">
+          <div className="bg-white p-4 rounded-xl border border-neutral-200 flex items-center gap-3">
+            <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Points for Attendance:</span>
+            <input
+              type="number"
+              value={globalPoints}
+              onChange={(e) => setGlobalPoints(parseInt(e.target.value) || 0)}
+              className="w-16 px-2 py-1 border border-neutral-300 rounded-lg text-center font-bold"
+            />
+          </div>
+          <Button onClick={handleSave} isLoading={saving}>
+            Save Attendance
+          </Button>
+        </div>
       </div>
 
       {loading ? (
