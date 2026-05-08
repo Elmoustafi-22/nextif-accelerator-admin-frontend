@@ -14,6 +14,7 @@ import TaskSubmissionsPage from "../pages/TaskSubmissionsPage";
 import EventListPage from "../pages/events/EventListPage";
 import CreateEventPage from "../pages/events/CreateEventPage";
 import EventAttendancePage from "../pages/events/EventAttendancePage";
+import AttendanceManagementPage from "../pages/events/AttendanceManagementPage";
 import AdminDirectoryPage from "../pages/admins/AdminDirectoryPage";
 import Layout from "../components/Layout";
 
@@ -58,6 +59,7 @@ const AppRoutes = () => {
             path="/events/:id/attendance"
             element={<EventAttendancePage />}
           />
+          <Route path="/attendance" element={<AttendanceManagementPage />} />
         </Route>
       </Route>
 

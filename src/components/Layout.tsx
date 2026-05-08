@@ -14,7 +14,6 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "../utils/cn";
-import api from "../api/axiosInstance";
 import { useAuthStore } from "../store/useAuthStore";
 import { useNotificationStore } from "../store/useNotificationStore";
 import NotificationDropdown from "./NotificationDropdown";
@@ -30,7 +29,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const [lastEvent, setLastEvent] = React.useState<{ _id: string; title: string } | null>(null);
 
   // effectiveOpen is true if explicitly open OR currently hovered
   const effectiveOpen = isSidebarOpen || isHovered;
@@ -45,18 +43,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   React.useEffect(() => {
     fetchNotifications();
-    const fetchLastEvent = async () => {
-      try {
-        const res = await api.get("/events");
-        if (res.data.length > 0) {
-          // Assuming the list is sorted by date desc
-          setLastEvent(res.data[0]);
-        }
-      } catch (err) {
-        console.error("Error fetching last event:", err);
-      }
-    };
-    fetchLastEvent();
   }, [fetchNotifications]);
 
   // Close sidebar on mobile route change
@@ -89,7 +75,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { name: "Complaints", href: "/complaints", icon: PlusCircle },
     { name: "Team", href: "/team", icon: Users }, // Admin Directory
     { name: "Events", href: "/events", icon: Calendar },
-    ...(lastEvent ? [{ name: `Attendance: ${lastEvent.title}`, href: `/events/${lastEvent._id}/attendance`, icon: Users }] : []),
+    { name: "Attendance", href: "/attendance", icon: CheckSquare },
     { name: "Announcements", href: "/announcements", icon: Bell },
   ];
 
