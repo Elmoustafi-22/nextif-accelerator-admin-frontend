@@ -16,6 +16,8 @@ const CreateEventPage = () => {
     date: "",
     location: "",
     type: "WEBINAR",
+    speaker: "",
+    recordingLink: "",
     status: "UPCOMING",
   });
   const [loading, setLoading] = useState(false);
@@ -36,6 +38,8 @@ const CreateEventPage = () => {
             date: formattedDate,
             location: event.location || "",
             type: event.type,
+            speaker: event.speaker || "",
+            recordingLink: event.recordingLink || "",
             status: event.status,
           });
         } catch (error) {
@@ -141,6 +145,7 @@ const CreateEventPage = () => {
                 <option value="WEBINAR">Webinar</option>
                 <option value="MEETING">Meeting</option>
                 <option value="WORKSHOP">Workshop</option>
+                <option value="SESSION">Session</option>
                 <option value="OTHER">Other</option>
               </select>
             </div>
@@ -161,6 +166,26 @@ const CreateEventPage = () => {
                 <option value="CANCELLED">Cancelled</option>
               </select>
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input
+              label="Speaker"
+              value={formData.speaker}
+              onChange={(e) =>
+                setFormData({ ...formData, speaker: e.target.value })
+              }
+              placeholder="e.g., Dr. Jane Smith"
+            />
+
+            <Input
+              label="Recording Link (Post-event)"
+              value={formData.recordingLink}
+              onChange={(e) =>
+                setFormData({ ...formData, recordingLink: e.target.value })
+              }
+              placeholder="e.g., https://zoom.us/rec/..."
+            />
           </div>
 
           <div className="flex justify-end pt-4">

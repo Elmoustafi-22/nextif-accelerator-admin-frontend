@@ -18,6 +18,7 @@ interface AttendanceRecord {
   lastName: string;
   email: string;
   attendanceStatus: "PRESENT" | "ABSENT" | "EXCUSED" | "NOT_MARKED";
+  marks: number;
 }
 
 const EventAttendancePage = () => {
@@ -56,6 +57,12 @@ const EventAttendancePage = () => {
     );
   };
 
+  const updateLocalMarks = (ambassadorId: string, marks: number) => {
+    setAttendees((prev) =>
+      prev.map((a) => (a._id === ambassadorId ? { ...a, marks } : a))
+    );
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -64,6 +71,7 @@ const EventAttendancePage = () => {
         .map((a) => ({
           ambassadorId: a._id,
           status: a.attendanceStatus,
+          marks: a.marks,
         }));
 
       await api.post(`/events/${id}/attendance/bulk`, { items });
@@ -146,6 +154,9 @@ const EventAttendancePage = () => {
                   <th className="px-6 py-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider text-center">
                     Excused
                   </th>
+                  <th className="px-6 py-4 text-xs font-semibold text-neutral-500 uppercase tracking-wider text-center">
+                    Marks
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
@@ -210,6 +221,20 @@ const EventAttendancePage = () => {
                       >
                         Excused
                       </button>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <input
+                        type="number"
+                        value={ambassador.marks}
+                        onChange={(e) =>
+                          updateLocalMarks(
+                            ambassador._id,
+                            parseInt(e.target.value) || 0
+                          )
+                        }
+                        className="w-20 px-2 py-1 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent text-center"
+                        min="0"
+                      />
                     </td>
                   </tr>
                 ))}
