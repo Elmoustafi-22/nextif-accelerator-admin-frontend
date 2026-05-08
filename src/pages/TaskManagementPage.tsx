@@ -834,14 +834,30 @@ const TaskManagementPage = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
                       Assign Fellows
                     </label>
-                    <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">
-                      {formData.assignedTo.length} Selected
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const allIds = ambassadors.map((a: any) => a._id);
+                          const isAllSelected = allIds.every(id => formData.assignedTo.includes(id));
+                          setFormData({
+                            ...formData,
+                            assignedTo: isAllSelected ? [] : allIds
+                          });
+                        }}
+                        className="text-[10px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg transition-colors"
+                      >
+                        {ambassadors.map((a: any) => a._id).every(id => formData.assignedTo.includes(id)) 
+                          ? "Deselect All" 
+                          : "Select All Fellows"}
+                      </button>
+                      <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">
+                        {formData.assignedTo.length} Selected
+                      </span>
+                    </div>
 
                   <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-4 max-h-[200px] overflow-y-auto space-y-2">
                     {ambassadors.length === 0 ? (
