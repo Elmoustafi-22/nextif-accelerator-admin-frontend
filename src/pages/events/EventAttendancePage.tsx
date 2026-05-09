@@ -92,6 +92,47 @@ const EventAttendancePage = () => {
     }
   };
 
+  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const rows = text.split('\n').map(row => row.toLowerCase());
+      
+      setAttendees(prev => prev.map(a => {
+        const firstName = a.firstName?.toLowerCase().trim() || "";
+        const lastName = a.lastName?.toLowerCase().trim() || "";
+        
+        const isPresent = rows.some(row => {
+          const hasFirst = firstName.length > 1 && row.includes(firstName);
+          const hasLast = lastName.length > 1 && row.includes(lastName);
+          
+          // Option 1: Both names are present in the row
+          if (hasFirst && hasLast) return true;
+          
+          // Option 2: Only one of the names is present (allows for manual verification)
+          if (hasFirst || hasLast) return true;
+          
+          return false;
+        });
+
+        if (isPresent) {
+          return {
+            ...a,
+            attendanceStatus: "PRESENT",
+            marks: globalPoints
+          };
+        }
+        return a;
+      }));
+    };
+    reader.readAsText(file);
+    // Reset file input so the same file can be uploaded again if needed
+    e.target.value = '';
+  };
+
   const stats = {
     present: attendees.filter((a) => a.attendanceStatus === "PRESENT").length,
     absent: attendees.filter((a) => a.attendanceStatus === "ABSENT").length,
@@ -143,6 +184,21 @@ const EventAttendancePage = () => {
               onChange={(e) => setGlobalPoints(parseInt(e.target.value) || 0)}
               className="w-16 px-2 py-1 border border-neutral-300 rounded-lg text-center font-bold"
             />
+          </div>
+          <div>
+            <input 
+              type="file" 
+              accept=".csv" 
+              id="csv-upload" 
+              className="hidden" 
+              onChange={handleCSVUpload} 
+            />
+            <label 
+              htmlFor="csv-upload" 
+              className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-200 font-bold text-sm cursor-pointer hover:bg-indigo-100 transition-colors inline-flex items-center h-10"
+            >
+              Upload CSV
+            </label>
           </div>
           <Button onClick={handleSave} isLoading={saving}>
             Save Attendance

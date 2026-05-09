@@ -115,6 +115,46 @@ const AttendanceManagementPage = () => {
     }
   };
 
+  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const rows = text.split('\n').map(row => row.toLowerCase());
+      
+      setAttendees(prev => prev.map(a => {
+        const firstName = a.firstName?.toLowerCase().trim() || "";
+        const lastName = a.lastName?.toLowerCase().trim() || "";
+        
+        const isPresent = rows.some(row => {
+          const hasFirst = firstName.length > 1 && row.includes(firstName);
+          const hasLast = lastName.length > 1 && row.includes(lastName);
+          
+          // Option 1: Both names are present in the row
+          if (hasFirst && hasLast) return true;
+          
+          // Option 2: Only one of the names is present (allows for manual verification)
+          if (hasFirst || hasLast) return true;
+          
+          return false;
+        });
+
+        if (isPresent) {
+          return {
+            ...a,
+            attendanceStatus: "PRESENT",
+            marks: globalPoints
+          };
+        }
+        return a;
+      }));
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -232,13 +272,30 @@ const AttendanceManagementPage = () => {
                               </span>
                             </div>
                           </div>
-                          <Button 
-                            onClick={() => handleSave(event._id)} 
-                            isLoading={saving}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-8 py-4 shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
-                          >
-                            Save Briefing Log
-                          </Button>
+                          <div className="flex items-center gap-4">
+                            <div>
+                              <input 
+                                type="file" 
+                                accept=".csv" 
+                                id={`csv-upload-${event._id}`} 
+                                className="hidden" 
+                                onChange={handleCSVUpload} 
+                              />
+                              <label 
+                                htmlFor={`csv-upload-${event._id}`} 
+                                className="px-5 py-4 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100 font-bold text-sm cursor-pointer hover:bg-indigo-100 transition-colors inline-flex items-center"
+                              >
+                                Upload CSV
+                              </label>
+                            </div>
+                            <Button 
+                              onClick={() => handleSave(event._id)} 
+                              isLoading={saving}
+                              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-8 py-4 shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
+                            >
+                              Save Briefing Log
+                            </Button>
+                          </div>
                         </div>
 
                         <div className="overflow-hidden rounded-[2rem] border border-neutral-100 bg-white">

@@ -53,12 +53,12 @@ const BulkOnboardPage = () => {
 
   const downloadTemplate = () => {
     const csvContent =
-      "firstName,lastName,email,university\nJohn,Doe,john@example.com,Lagos State University\nJane,Smith,jane@example.com,University of Ibadan";
+      "firstName,lastName,email,university\nJohn,Doe,john@example.com,Lagos State University\nJane,Smith,jane@example.com,";
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "ambassador_template.csv";
+    a.download = "fellows_template.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -94,8 +94,8 @@ const BulkOnboardPage = () => {
             Ensure your CSV matches the template structure. Required columns:{" "}
             <code className="text-blue-600 font-bold">firstName</code>,{" "}
             <code className="text-blue-600 font-bold">lastName</code>,{" "}
-            <code className="text-blue-600 font-bold">email</code>, and{" "}
-            <code className="text-blue-600 font-bold">university</code>.
+            <code className="text-blue-600 font-bold">email</code>.{" "}
+            Optional: <code className="text-neutral-400 font-bold">university</code>.
           </p>
 
           <div className="h-px bg-neutral-100"></div>
