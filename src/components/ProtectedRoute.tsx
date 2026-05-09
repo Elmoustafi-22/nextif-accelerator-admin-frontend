@@ -13,7 +13,13 @@ const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+  if (
+    allowedRoles &&
+    user &&
+    !allowedRoles
+      .map((r) => r.toLowerCase())
+      .includes(user.role.toLowerCase())
+  ) {
     return <Navigate to="/unauthorized" replace />;
   }
 
