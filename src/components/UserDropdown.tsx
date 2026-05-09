@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { User, LogOut, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
-import { cn } from "../utils/cn";
+
 
 interface UserDropdownProps {
   isOpen: boolean;
