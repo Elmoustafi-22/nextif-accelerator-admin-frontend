@@ -1,20 +1,40 @@
-import { useState, type ChangeEvent } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import api from "../api/axiosInstance";
 import { X, Plus, Trash2 } from "lucide-react";
 import Button from "./Button";
 import Input from "./Input";
 
-interface AddRecordingModalProps {
+interface Recording {
+  _id: string;
+  title: string;
+  description?: string;
+  links: { title: string; url: string }[];
+}
+
+interface RecordingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  recording?: Recording | null;
 }
 
-const AddRecordingModal = ({ isOpen, onClose, onSuccess }: AddRecordingModalProps) => {
+const RecordingModal = ({ isOpen, onClose, onSuccess, recording }: RecordingModalProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [links, setLinks] = useState([{ title: "", url: "" }]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (recording) {
+      setTitle(recording.title);
+      setDescription(recording.description || "");
+      setLinks(recording.links.length > 0 ? [...recording.links] : [{ title: "", url: "" }]);
+    } else {
+      setTitle("");
+      setDescription("");
+      setLinks([{ title: "", url: "" }]);
+    }
+  }, [recording, isOpen]);
 
   if (!isOpen) return null;
 
@@ -22,17 +42,21 @@ const AddRecordingModal = ({ isOpen, onClose, onSuccess }: AddRecordingModalProp
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post("/recordings", {
-        title,
-        description,
-        links,
-      });
+      if (recording) {
+        await api.put(`/recordings/${recording._id}`, {
+          title,
+          description,
+          links,
+        });
+      } else {
+        await api.post("/recordings", {
+          title,
+          description,
+          links,
+        });
+      }
       onSuccess();
       onClose();
-      // Reset form
-      setTitle("");
-      setDescription("");
-      setLinks([{ title: "", url: "" }]);
     } catch (err) {
       console.error(err);
     } finally {
@@ -58,7 +82,7 @@ const AddRecordingModal = ({ isOpen, onClose, onSuccess }: AddRecordingModalProp
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Add New Recording</h2>
+          <h2 className="text-xl font-bold">{recording ? "Edit Recording" : "Add New Recording"}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
             <X size={20} />
           </button>
@@ -111,7 +135,7 @@ const AddRecordingModal = ({ isOpen, onClose, onSuccess }: AddRecordingModalProp
           </div>
 
           <Button type="submit" className="w-full" isLoading={loading}>
-            Create Recording
+            {recording ? "Save Changes" : "Create Recording"}
           </Button>
         </form>
       </div>
@@ -119,4 +143,4 @@ const AddRecordingModal = ({ isOpen, onClose, onSuccess }: AddRecordingModalProp
   );
 };
 
-export default AddRecordingModal;
+export default RecordingModal;
