@@ -203,8 +203,8 @@ const TaskSubmissionsPage = () => {
               <AlertCircle size={18} className="text-blue-400" /> Verification Info
             </h3>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              Once verified, the fellow will receive an automated email and 
-              <strong> ${task.rewardPoints} points</strong> will be added to their profile.
+              Once verified, the fellow will receive an automated email and
+              <strong> {task.rewardPoints} points</strong> will be added to their profile.
             </p>
           </div>
         </div>
@@ -244,12 +244,12 @@ const TaskSubmissionsPage = () => {
                       </div>
                     </div>
                     {sub.reviewedBy && (
-                        <div className="text-right">
-                          <span className="text-[9px] text-neutral-400 font-bold uppercase block">Last Reviewed By</span>
-                          <span className="text-[11px] text-neutral-600 font-bold">
-                            {sub.reviewedBy.title || "Administrator"}
-                          </span>
-                        </div>
+                      <div className="text-right">
+                        <span className="text-[9px] text-neutral-400 font-bold uppercase block">Last Reviewed By</span>
+                        <span className="text-[11px] text-neutral-600 font-bold">
+                          {sub.reviewedBy.title || "Administrator"}
+                        </span>
+                      </div>
                     )}
                   </div>
 
@@ -303,7 +303,7 @@ const TaskSubmissionsPage = () => {
                         onChange={(e) => setRemarks({ ...remarks, [sub._id]: e.target.value })}
                       />
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-3">
                       <Button
                         className="flex-1 bg-green-600 hover:bg-green-700 border-none h-11"
@@ -314,7 +314,7 @@ const TaskSubmissionsPage = () => {
                       >
                         {sub.status === "REJECTED" ? "Reverse & Award Points" : "Verify & Award Points"}
                       </Button>
-                      
+
                       {sub.status !== 'REDO' && (
                         <Button
                           variant="outline"
