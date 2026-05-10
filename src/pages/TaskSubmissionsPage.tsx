@@ -247,7 +247,7 @@ const TaskSubmissionsPage = () => {
                         <div className="text-right">
                           <span className="text-[9px] text-neutral-400 font-bold uppercase block">Last Reviewed By</span>
                           <span className="text-[11px] text-neutral-600 font-bold">
-                            {sub.reviewedBy.firstName} {sub.reviewedBy.lastName}
+                            {sub.reviewedBy.title || "Administrator"}
                           </span>
                         </div>
                     )}
