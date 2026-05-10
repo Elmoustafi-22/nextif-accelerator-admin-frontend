@@ -92,6 +92,34 @@ const EventAttendancePage = () => {
     }
   };
 
+  const downloadCSV = () => {
+    if (attendees.length === 0) return;
+
+    const headers = ["First Name", "Last Name", "Email", "Status", "Points"];
+    const rows = attendees.map(a => [
+      a.firstName,
+      a.lastName,
+      a.email,
+      a.attendanceStatus,
+      a.marks
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(val => `"${val}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `attendance_${eventTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -185,7 +213,7 @@ const EventAttendancePage = () => {
               className="w-16 px-2 py-1 border border-neutral-300 rounded-lg text-center font-bold"
             />
           </div>
-          <div>
+          <div className="flex items-center gap-3">
             <input 
               type="file" 
               accept=".csv" 
@@ -199,6 +227,12 @@ const EventAttendancePage = () => {
             >
               Upload CSV
             </label>
+            <button 
+              onClick={downloadCSV}
+              className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200 font-bold text-sm hover:bg-emerald-100 transition-colors inline-flex items-center h-10"
+            >
+              Download CSV
+            </button>
           </div>
           <Button onClick={handleSave} isLoading={saving}>
             Save Attendance
