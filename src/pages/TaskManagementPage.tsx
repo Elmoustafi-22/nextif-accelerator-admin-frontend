@@ -77,7 +77,7 @@ const TaskManagementPage = () => {
   const fetchAmbassadors = async () => {
     try {
       const response = await axiosInstance.get("/admin/ambassadors", {
-        params: { status: "ACTIVE", limit: 10000 }, // Fetch all active fellows
+        params: { limit: 10000 }, // Fetch all fellows regardless of status
       });
       setAmbassadors(response.data.data || []);
     } catch (error) {
@@ -862,7 +862,7 @@ const TaskManagementPage = () => {
                   <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-4 max-h-[200px] overflow-y-auto space-y-2">
                     {ambassadors.length === 0 ? (
                       <p className="text-center text-xs text-neutral-500 py-4">
-                        No active fellows found
+                        No fellows found
                       </p>
                     ) : (
                       ambassadors.map((amb: any) => (
