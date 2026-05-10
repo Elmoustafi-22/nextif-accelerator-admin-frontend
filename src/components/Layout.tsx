@@ -13,6 +13,7 @@ import {
   Calendar,
   Users,
   Award,
+  Video,
 } from "lucide-react";
 import { cn } from "../utils/cn";
 import { useAuthStore } from "../store/useAuthStore";
@@ -81,6 +82,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { name: "Attendance", href: "/attendance", icon: CheckSquare },
     { name: "Leaderboard", href: "/leaderboard", icon: Award },
     { name: "Announcements", href: "/announcements", icon: Bell },
+    { name: "Recordings", href: "/recordings", icon: Video },
   ];
 
   return (

@@ -18,6 +18,7 @@ import EventAttendancePage from "../pages/events/EventAttendancePage";
 import AttendanceManagementPage from "../pages/events/AttendanceManagementPage";
 import AdminDirectoryPage from "../pages/admins/AdminDirectoryPage";
 import LeaderboardPage from "../pages/LeaderboardPage";
+import RecordingsPage from "../pages/RecordingsPage";
 import Layout from "../components/Layout";
 
 // Placeholder components
@@ -79,6 +80,7 @@ const AppRoutes = () => {
           />
           <Route path="/attendance" element={<AttendanceManagementPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/recordings" element={<RecordingsPage />} />
         </Route>
       </Route>
 
