@@ -27,7 +27,7 @@ const TaskSubmissionsPage = () => {
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [remarks, setRemarks] = useState<{ [key: string]: string }>({});
   const [showAcceptModal, setShowAcceptModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<"UNVERIFIED" | "VERIFIED" | "REDO">("UNVERIFIED");
+  const [activeTab, setActiveTab] = useState<"UNVERIFIED" | "VERIFIED" | "REDO" | "REJECTED">("UNVERIFIED");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,8 +53,8 @@ const TaskSubmissionsPage = () => {
     submissionId: string,
     status: "COMPLETED" | "REJECTED" | "REDO"
   ) => {
-    if (status === "REDO" && !remarks[submissionId]) {
-      toast.warning("Please provide a reason for the redo request.");
+    if ((status === "REDO" || status === "REJECTED") && !remarks[submissionId]) {
+      toast.warning(`Please provide a reason for the ${status.toLowerCase()} request.`);
       return;
     }
     try {
@@ -93,6 +93,7 @@ const TaskSubmissionsPage = () => {
     if (activeTab === "UNVERIFIED") return s.status === "SUBMITTED";
     if (activeTab === "VERIFIED") return s.status === "COMPLETED";
     if (activeTab === "REDO") return s.status === "REDO";
+    if (activeTab === "REJECTED") return s.status === "REJECTED";
     return false;
   });
 
@@ -148,6 +149,7 @@ const TaskSubmissionsPage = () => {
           { id: "UNVERIFIED", label: "Unverified", count: submissions.filter(s => s.status === 'SUBMITTED').length },
           { id: "VERIFIED", label: "Verified", count: submissions.filter(s => s.status === 'COMPLETED').length },
           { id: "REDO", label: "Redo Requested", count: submissions.filter(s => s.status === 'REDO').length },
+          { id: "REJECTED", label: "Rejected", count: submissions.filter(s => s.status === 'REJECTED').length },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -292,7 +294,7 @@ const TaskSubmissionsPage = () => {
                   <div className="pt-6 border-t border-neutral-50 space-y-4">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-                        {activeTab === 'REDO' ? 'Update Feedback' : 'Admin Feedback / Redo Reason'}
+                        {activeTab === 'REDO' || activeTab === 'REJECTED' ? 'Update Feedback' : 'Admin Feedback / Redo Reason'}
                       </label>
                       <textarea
                         className="w-full text-sm p-4 rounded-2xl bg-neutral-50 border border-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none h-20"
@@ -310,10 +312,10 @@ const TaskSubmissionsPage = () => {
                         isLoading={verifyingId === sub._id}
                         leftIcon={<CheckCircle2 size={18} />}
                       >
-                        Verify & Award Points
+                        {sub.status === "REJECTED" ? "Reverse & Award Points" : "Verify & Award Points"}
                       </Button>
                       
-                      {activeTab !== 'REDO' && (
+                      {sub.status !== 'REDO' && (
                         <Button
                           variant="outline"
                           className="flex-1 border-amber-200 text-amber-600 hover:bg-amber-50 h-11"
@@ -326,16 +328,18 @@ const TaskSubmissionsPage = () => {
                         </Button>
                       )}
 
-                      <Button
-                        variant="outline"
-                        className="flex-1 border-red-200 text-red-600 hover:bg-red-50 h-11"
-                        onClick={() => handleVerify(sub._id, "REJECTED")}
-                        disabled={verifyingId === sub._id}
-                        isLoading={verifyingId === sub._id}
-                        leftIcon={<XCircle size={18} />}
-                      >
-                        Reject
-                      </Button>
+                      {sub.status !== 'REJECTED' && (
+                        <Button
+                          variant="outline"
+                          className="flex-1 border-red-200 text-red-600 hover:bg-red-50 h-11"
+                          onClick={() => handleVerify(sub._id, "REJECTED")}
+                          disabled={verifyingId === sub._id}
+                          isLoading={verifyingId === sub._id}
+                          leftIcon={<XCircle size={18} />}
+                        >
+                          Reject
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -77,7 +77,7 @@ const TaskManagementPage = () => {
   const fetchAmbassadors = async () => {
     try {
       const response = await axiosInstance.get("/admin/ambassadors", {
-        params: { status: "ACTIVE" }, // Only assign to active fellows
+        params: { status: "ACTIVE", limit: 10000 }, // Fetch all active fellows
       });
       setAmbassadors(response.data.data || []);
     } catch (error) {
