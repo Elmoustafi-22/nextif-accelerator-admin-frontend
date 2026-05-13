@@ -140,6 +140,18 @@ const LoginPage = () => {
               </div>
             )}
 
+            {!isFirstLogin && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
             <Button
               type="submit"
               className="w-full mt-2"
