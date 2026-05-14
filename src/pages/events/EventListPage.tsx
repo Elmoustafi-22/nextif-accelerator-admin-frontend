@@ -17,6 +17,7 @@ interface Event {
   title: string;
   description: string;
   date: string;
+  endDate?: string;
   location?: string;
   type: string;
   status: string;
@@ -123,7 +124,8 @@ const EventListPage = () => {
                 <div className="flex items-center text-sm text-neutral-500 mt-2 space-x-4">
                   <div className="flex items-center">
                     <CalendarIcon className="w-4 h-4 mr-1.5" />
-                    {format(new Date(event.date), "PPP p")}
+                    {format(new Date(event.date), "PPP")} @ {format(new Date(event.date), "p")}
+                    {event.endDate && ` - ${format(new Date(event.endDate), "p")}`}
                   </div>
                   {event.location && (
                     <div className="flex items-center">

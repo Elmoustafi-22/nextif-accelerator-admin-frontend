@@ -26,6 +26,7 @@ const TaskSubmissionsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [remarks, setRemarks] = useState<{ [key: string]: string }>({});
+  const [selectedGrades, setSelectedGrades] = useState<{ [key: string]: number }>({});
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"UNVERIFIED" | "VERIFIED" | "REDO" | "REJECTED">("UNVERIFIED");
 
@@ -57,6 +58,10 @@ const TaskSubmissionsPage = () => {
       toast.warning(`Please provide a reason for the ${status.toLowerCase()} request.`);
       return;
     }
+    if (status === "COMPLETED" && !selectedGrades[submissionId]) {
+      toast.warning("Please select a grade (1-5) before verifying.");
+      return;
+    }
     try {
       setVerifyingId(submissionId);
       const res = await axiosInstance.patch(
@@ -64,6 +69,7 @@ const TaskSubmissionsPage = () => {
         {
           status,
           feedback: remarks[submissionId] || "",
+          grade: status === "COMPLETED" ? selectedGrades[submissionId] : undefined,
         }
       );
 
@@ -199,14 +205,13 @@ const TaskSubmissionsPage = () => {
           </div>
 
           <div className="bg-neutral-900 rounded-3xl p-6 text-white shadow-xl">
-            <h3 className="font-bold font-heading mb-4 flex items-center gap-2">
-              <AlertCircle size={18} className="text-blue-400" /> Verification Info
-            </h3>
-            <p className="text-xs text-neutral-400 leading-relaxed">
-              Once verified, the fellow will receive an automated email and
-              <strong> {task.rewardPoints} points</strong> will be added to their profile.
-            </p>
-          </div>
+              <h3 className="font-bold font-heading mb-4 flex items-center gap-2">
+                <AlertCircle size={18} className="text-blue-400" /> Verification Info
+              </h3>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Assign a grade between 1 and 5. The selected grade will be added as points to the fellow's profile upon verification.
+              </p>
+            </div>
         </div>
 
         {/* Submissions List Column */}
@@ -292,16 +297,41 @@ const TaskSubmissionsPage = () => {
 
                   {/* Actions */}
                   <div className="pt-6 border-t border-neutral-50 space-y-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-                        {activeTab === 'REDO' || activeTab === 'REJECTED' ? 'Update Feedback' : 'Admin Feedback / Redo Reason'}
-                      </label>
-                      <textarea
-                        className="w-full text-sm p-4 rounded-2xl bg-neutral-50 border border-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none h-20"
-                        placeholder="Why is a redo needed? or General remarks..."
-                        value={remarks[sub._id] || sub.adminFeedback || ""}
-                        onChange={(e) => setRemarks({ ...remarks, [sub._id]: e.target.value })}
-                      />
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                          Assign Grade (Points)
+                        </label>
+                        <div className="flex gap-2">
+                          {[1, 2, 3, 4, 5].map((g) => (
+                            <button
+                              key={g}
+                              type="button"
+                              onClick={() => setSelectedGrades({ ...selectedGrades, [sub._id]: g })}
+                              className={cn(
+                                "w-10 h-10 rounded-xl font-bold transition-all border",
+                                (selectedGrades[sub._id] || sub.grade) === g
+                                  ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100 scale-110"
+                                  : "bg-white border-neutral-100 text-neutral-400 hover:border-neutral-300"
+                              )}
+                            >
+                              {g}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                          {activeTab === 'REDO' || activeTab === 'REJECTED' ? 'Update Feedback' : 'Admin Feedback / Redo Reason'}
+                        </label>
+                        <textarea
+                          className="w-full text-sm p-4 rounded-2xl bg-neutral-50 border border-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none h-20"
+                          placeholder="Why is a redo needed? or General remarks..."
+                          value={remarks[sub._id] || sub.adminFeedback || ""}
+                          onChange={(e) => setRemarks({ ...remarks, [sub._id]: e.target.value })}
+                        />
+                      </div>
                     </div>
 
                     <div className="flex flex-wrap gap-3">

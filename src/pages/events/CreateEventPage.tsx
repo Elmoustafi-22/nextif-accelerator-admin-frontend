@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/axiosInstance";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { format } from "date-fns";
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
@@ -14,10 +15,11 @@ const CreateEventPage = () => {
     title: "",
     description: "",
     date: "",
+    endDate: "",
     location: "",
     type: "WEBINAR",
     speaker: "",
-    recordingLink: "",
+    recordingLinks: [] as { title: string; url: string }[],
     status: "UPCOMING",
   });
   const [loading, setLoading] = useState(false);
@@ -29,17 +31,23 @@ const CreateEventPage = () => {
           const response = await api.get(`/events/${id}`);
           const event = response.data;
           // Format date for datetime-local input
-          const dateObj = new Date(event.date);
-          const formattedDate = dateObj.toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
+          // Format date for datetime-local input (YYYY-MM-DDTHH:mm)
+          const formattedDate = format(new Date(event.date), "yyyy-MM-dd'T'HH:mm");
+
+          let formattedEndDate = "";
+          if (event.endDate) {
+            formattedEndDate = format(new Date(event.endDate), "yyyy-MM-dd'T'HH:mm");
+          }
 
           setFormData({
             title: event.title,
             description: event.description,
             date: formattedDate,
+            endDate: formattedEndDate,
             location: event.location || "",
             type: event.type,
             speaker: event.speaker || "",
-            recordingLink: event.recordingLink || "",
+            recordingLinks: event.recordingLinks || [],
             status: event.status,
           });
         } catch (error) {
@@ -52,12 +60,23 @@ const CreateEventPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (formData.endDate && new Date(formData.endDate) <= new Date(formData.date)) {
+      alert("End time must be after start time.");
+      setLoading(false);
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      date: new Date(formData.date).toISOString(),
+      endDate: formData.endDate ? new Date(formData.endDate).toISOString() : undefined,
+    };
+
     try {
       if (isEditing) {
-        await api.patch(`/events/${id}`, formData);
+        await api.patch(`/events/${id}`, payload);
       } else {
-        await api.post("/events", formData);
+        await api.post("/events", payload);
       }
       navigate("/events");
     } catch (error) {
@@ -111,13 +130,22 @@ const CreateEventPage = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
-              label="Date & Time"
+              label="Start Date & Time"
               type="datetime-local"
               value={formData.date}
               onChange={(e) =>
                 setFormData({ ...formData, date: e.target.value })
               }
               required
+            />
+
+            <Input
+              label="End Date & Time"
+              type="datetime-local"
+              value={formData.endDate}
+              onChange={(e) =>
+                setFormData({ ...formData, endDate: e.target.value })
+              }
             />
 
             <Input
@@ -178,14 +206,68 @@ const CreateEventPage = () => {
               placeholder="e.g., Dr. Jane Smith"
             />
 
-            <Input
-              label="Recording Link (Post-event)"
-              value={formData.recordingLink}
-              onChange={(e) =>
-                setFormData({ ...formData, recordingLink: e.target.value })
-              }
-              placeholder="e.g., https://zoom.us/rec/..."
-            />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-neutral-700">
+                Recording Links
+              </label>
+              <button
+                type="button"
+                onClick={() => setFormData({
+                  ...formData,
+                  recordingLinks: [...formData.recordingLinks, { title: "Session Recording", url: "" }]
+                })}
+                className="text-sm font-bold text-indigo-600 hover:text-indigo-700 flex items-center"
+              >
+                <PlusIcon className="w-4 h-4 mr-1" />
+                Add Link
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {formData.recordingLinks.map((link, index) => (
+                <div key={index} className="flex gap-3 items-start bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+                  <div className="flex-1 space-y-3">
+                    <Input
+                      label="Link Title"
+                      value={link.title}
+                      onChange={(e) => {
+                        const newLinks = [...formData.recordingLinks];
+                        newLinks[index].title = e.target.value;
+                        setFormData({ ...formData, recordingLinks: newLinks });
+                      }}
+                      placeholder="e.g., Session Recording"
+                    />
+                    <Input
+                      label="URL"
+                      value={link.url}
+                      onChange={(e) => {
+                        const newLinks = [...formData.recordingLinks];
+                        newLinks[index].url = e.target.value;
+                        setFormData({ ...formData, recordingLinks: newLinks });
+                      }}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newLinks = formData.recordingLinks.filter((_, i) => i !== index);
+                      setFormData({ ...formData, recordingLinks: newLinks });
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors mt-6"
+                  >
+                    <TrashIcon className="w-5 h-5" />
+                  </button>
+                </div>
+              ))}
+              {formData.recordingLinks.length === 0 && (
+                <div className="text-center py-6 bg-neutral-50 rounded-xl border border-dashed border-neutral-300 text-neutral-400 text-sm">
+                  No recording links added yet.
+                </div>
+              )}
+            </div>
+          </div>
           </div>
 
           <div className="flex justify-end pt-4">

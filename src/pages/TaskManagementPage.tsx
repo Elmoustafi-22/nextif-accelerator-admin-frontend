@@ -23,6 +23,7 @@ import Button from "../components/Button";
 import Input from "../components/Input";
 import { cn } from "../utils/cn";
 import { toast } from "../store/useToastStore";
+import { format } from "date-fns";
 
 const TaskManagementPage = () => {
   const navigate = useNavigate();
@@ -101,11 +102,16 @@ const TaskManagementPage = () => {
       return;
     }
 
+    const payload = {
+      ...formData,
+      dueDate: new Date(formData.dueDate).toISOString(),
+    };
+
     try {
       if (editingTaskId) {
-        await axiosInstance.patch(`/tasks/${editingTaskId}`, formData);
+        await axiosInstance.patch(`/tasks/${editingTaskId}`, payload);
       } else {
-        await axiosInstance.post("/tasks", formData);
+        await axiosInstance.post("/tasks", payload);
       }
       setIsModalOpen(false);
       setEditingTaskId(null);
@@ -140,7 +146,7 @@ const TaskManagementPage = () => {
       explanation: task.explanation,
       type: task.type,
       verificationType: task.verificationType,
-      dueDate: new Date(task.dueDate).toISOString().split("T")[0],
+      dueDate: format(new Date(task.dueDate), "yyyy-MM-dd'T'HH:mm"),
       assignedTo: task.assignedTo || [],
       rewardPoints: task.rewardPoints,
       isBonus: task.isBonus || false,
@@ -432,7 +438,7 @@ const TaskManagementPage = () => {
                   <div className="flex items-center gap-4 text-xs font-heading font-medium">
                     <div className="flex items-center gap-1.5 text-neutral-400">
                       <Calendar size={14} />
-                      {new Date(task.dueDate).toLocaleDateString()}
+                      {new Date(task.dueDate).toLocaleString()}
                     </div>
                     <div className="flex items-center gap-1.5 text-blue-600">
                       <Users size={14} />
@@ -588,8 +594,8 @@ const TaskManagementPage = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
-                      label="Due Date"
-                      type="date"
+                      label="Due Date & Time"
+                      type="datetime-local"
                       required
                       value={formData.dueDate}
                       onChange={(e) =>
