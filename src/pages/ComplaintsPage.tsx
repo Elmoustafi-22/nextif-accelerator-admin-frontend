@@ -95,29 +95,29 @@ const ComplaintsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">
+          <h1 className="text-2xl md:text-3xl font-black font-heading text-neutral-900 tracking-tight">
             Complaints Management
           </h1>
-          <p className="text-neutral-500 text-sm">
+          <p className="text-neutral-500 text-sm md:text-base mt-1 font-medium">
             Review and resolve issues reported by fellows.
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-neutral-100 flex flex-col md:flex-row gap-4">
-        <div className="flex-1 relative">
+      <div className="bg-white p-4 md:p-5 rounded-2xl border border-neutral-100 flex flex-col md:flex-row gap-4 shadow-sm">
+        <div className="flex-1 relative group">
           <Input
             placeholder="Filter by subject or fellow..."
-            icon={<Search size={18} className="text-neutral-400" />}
-            className="h-11"
+            icon={<Search size={18} className="text-neutral-400 group-focus-within:text-blue-600 transition-colors" />}
+            className="h-11 md:h-12 rounded-xl md:rounded-2xl bg-neutral-50 border-transparent focus:bg-white transition-all font-medium"
           />
         </div>
         <div className="flex gap-4">
           <select
-            className="bg-neutral-50 border border-neutral-100 rounded-xl px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="flex-1 md:flex-none bg-neutral-50 border border-neutral-100 rounded-xl md:rounded-2xl px-4 md:px-6 h-11 md:h-12 text-sm font-black font-heading focus:outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600/20 transition-all appearance-none cursor-pointer"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -139,15 +139,15 @@ const ComplaintsPage = () => {
             ></div>
           ))
         ) : complaints.length === 0 ? (
-          <div className="bg-white border border-neutral-100 rounded-3xl p-12 text-center">
-            <div className="w-16 h-16 bg-neutral-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <MessageSquare size={32} className="text-neutral-300" />
+          <div className="bg-white border border-neutral-100 rounded-3xl md:rounded-[3rem] p-10 md:p-24 text-center shadow-sm">
+            <div className="w-20 h-20 md:w-28 md:h-28 bg-blue-50 rounded-2xl md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 md:mb-8 shadow-inner">
+              <MessageSquare size={32} className="text-blue-600 md:w-12 md:h-12" />
             </div>
-            <h3 className="text-lg font-bold text-neutral-900">
+            <h3 className="text-lg md:text-3xl font-black font-heading text-neutral-900 tracking-tight">
               No complaints found
             </h3>
-            <p className="text-neutral-500 text-sm mt-1">
-              When fellows submit issues, they will appear here.
+            <p className="text-neutral-500 mt-3 md:mt-4 max-w-sm mx-auto font-medium text-sm md:text-lg leading-relaxed">
+              When fellows submit issues, they will appear here for administrative review.
             </p>
           </div>
         ) : (
@@ -155,60 +155,59 @@ const ComplaintsPage = () => {
             <div
               key={complaint._id}
               onClick={() => openModal(complaint)}
-              className="bg-white border border-neutral-100 rounded-2xl p-6 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+              className="bg-white border border-neutral-100 rounded-2xl md:rounded-[2rem] p-5 md:p-8 hover:shadow-2xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6"
             >
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex-1 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
-                        getStatusColor(complaint.status)
-                      )}
-                    >
-                      {getStatusIcon(complaint.status)}
-                      {complaint.status.replace("_", " ")}
-                    </span>
-                    <span className="text-xs text-neutral-400 font-medium tracking-tight">
-                      Submitted{" "}
-                      {new Date(complaint.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-heading font-bold text-neutral-900 group-hover:text-blue-600 transition-colors">
-                      {complaint.subject}
-                    </h3>
-                    <p className="text-sm text-neutral-500 line-clamp-2 mt-1">
-                      {complaint.message}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-4 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-neutral-900 rounded-lg flex items-center justify-center text-[10px] text-white font-bold">
-                        {complaint.ambassadorId?.firstName?.[0]}
-                        {complaint.ambassadorId?.lastName?.[0]}
-                      </div>
-                      <span className="font-heading font-bold text-neutral-700">
-                        {complaint.ambassadorId?.firstName}{" "}
-                        {complaint.ambassadorId?.lastName}
-                      </span>
-                    </div>
-                    {complaint.adminResponse && (
-                      <span className="text-blue-600 font-heading font-bold flex items-center gap-1">
-                        <CheckCircle2 size={12} /> Responded
-                      </span>
+              <div className="flex-1 space-y-4 md:space-y-6">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border",
+                      getStatusColor(complaint.status).includes('blue') ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                      getStatusColor(complaint.status).includes('amber') ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                      'bg-green-50 text-green-700 border-green-100'
                     )}
-                  </div>
+                  >
+                    {getStatusIcon(complaint.status)}
+                    {complaint.status.replace("_", " ")}
+                  </span>
+                  <span className="text-[10px] text-neutral-400 font-black uppercase tracking-widest">
+                    {new Date(complaint.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-neutral-300 group-hover:text-blue-600 transition-colors shrink-0">
-                  <span className="text-xs font-heading font-bold uppercase tracking-widest hidden md:inline">
-                    Manage
-                  </span>
-                  <ChevronRight size={20} />
+                <div>
+                  <h3 className="text-lg md:text-xl font-heading font-black text-neutral-900 group-hover:text-blue-600 transition-colors tracking-tight">
+                    {complaint.subject}
+                  </h3>
+                  <p className="text-sm md:text-base text-neutral-500 line-clamp-2 mt-2 font-medium leading-relaxed">
+                    {complaint.message}
+                  </p>
                 </div>
+
+                <div className="flex items-center gap-6 text-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center text-[10px] text-white font-black uppercase shadow-sm">
+                      {complaint.ambassadorId?.firstName?.[0]}
+                      {complaint.ambassadorId?.lastName?.[0]}
+                    </div>
+                    <span className="font-heading font-black text-neutral-700 uppercase tracking-widest text-[10px] md:text-xs">
+                      {complaint.ambassadorId?.firstName}{" "}
+                      {complaint.ambassadorId?.lastName}
+                    </span>
+                  </div>
+                  {complaint.adminResponse && (
+                    <span className="text-blue-600 font-heading font-black flex items-center gap-2 text-[10px] md:text-xs uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
+                      <CheckCircle2 size={14} /> Responded
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-neutral-300 group-hover:text-blue-600 group-hover:translate-x-2 transition-all shrink-0 self-end md:self-center">
+                <span className="text-[10px] font-heading font-black uppercase tracking-widest hidden md:inline">
+                  Operational Control
+                </span>
+                <ChevronRight size={24} className="md:w-6 md:h-6" />
               </div>
             </div>
           ))

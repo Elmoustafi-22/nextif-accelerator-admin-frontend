@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   UserPlus,
@@ -163,21 +163,20 @@ const FellowsListPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* ... header content ... */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">
+          <h1 className="text-2xl md:text-3xl font-black font-heading text-neutral-900 tracking-tight">
             Fellow Management
           </h1>
-          <p className="text-neutral-500 text-sm">
+          <p className="text-neutral-500 text-sm md:text-base font-medium">
             View, onboard, and manage all fellows.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
-            className="gap-2"
+            className="flex-1 sm:flex-none gap-2 h-10 md:h-11 rounded-xl md:rounded-2xl text-xs md:text-sm font-black font-heading"
             onClick={handleExport}
             isLoading={isExporting}
           >
@@ -185,7 +184,7 @@ const FellowsListPage = () => {
           </Button>
           <Button
             size="sm"
-            className="gap-2"
+            className="flex-1 sm:flex-none gap-2 h-10 md:h-11 rounded-xl md:rounded-2xl text-xs md:text-sm font-black font-heading"
             onClick={() => setIsModalOpen(true)}
           >
             <UserPlus size={16} /> New Fellow
@@ -194,20 +193,19 @@ const FellowsListPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-neutral-100 flex flex-col lg:flex-row gap-4">
-        {/* ... filters content ... */}
-        <div className="flex-1">
+      <div className="bg-white p-4 md:p-5 rounded-2xl border border-neutral-100 flex flex-col md:flex-row gap-4 shadow-sm">
+        <div className="flex-1 relative group">
           <Input
             placeholder="Search by name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            icon={<Search size={18} className="text-neutral-400" />}
-            className="h-11"
+            icon={<Search size={18} className="text-neutral-400 group-focus-within:text-blue-600 transition-colors" />}
+            className="h-11 md:h-12 rounded-xl md:rounded-2xl bg-neutral-50 border-transparent focus:bg-white transition-all font-medium"
           />
         </div>
         <div className="flex gap-4">
           <select
-            className="bg-neutral-50 border border-neutral-100 rounded-xl px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="flex-1 md:flex-none bg-neutral-50 border border-neutral-100 rounded-xl md:rounded-2xl px-4 md:px-6 h-11 md:h-12 text-sm font-black font-heading focus:outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600/20 transition-all appearance-none cursor-pointer"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -221,22 +219,23 @@ const FellowsListPage = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-2xl md:rounded-[2rem] border border-neutral-100 overflow-hidden shadow-sm">
+        {/* Desktop View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-neutral-50/50 border-b border-neutral-100">
-                <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-heading font-bold text-neutral-400 uppercase tracking-wider">
-                  Fellow
+                <th className="px-6 py-5 text-[10px] font-heading font-black text-neutral-400 uppercase tracking-[0.2em]">
+                  Fellow Information
                 </th>
-                <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-heading font-bold text-neutral-400 uppercase tracking-wider">
-                  Status
+                <th className="px-6 py-5 text-[10px] font-heading font-black text-neutral-400 uppercase tracking-[0.2em]">
+                  Account Status
                 </th>
-                <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-heading font-bold text-neutral-400 uppercase tracking-wider">
-                  Joined
+                <th className="px-6 py-5 text-[10px] font-heading font-black text-neutral-400 uppercase tracking-[0.2em]">
+                  Registration
                 </th>
-                <th className="px-4 py-3 sm:px-6 sm:py-4 text-xs font-heading font-bold text-neutral-400 uppercase tracking-wider text-right">
-                  Details
+                <th className="px-6 py-5 text-[10px] font-heading font-black text-neutral-400 uppercase tracking-[0.2em] text-right">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -245,74 +244,73 @@ const FellowsListPage = () => {
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="px-6 py-4">
-                      <div className="h-4 bg-neutral-100 rounded w-32"></div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-neutral-100 rounded-full" />
+                        <div className="space-y-2">
+                          <div className="h-4 bg-neutral-100 rounded w-32" />
+                          <div className="h-3 bg-neutral-100 rounded w-24" />
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="h-4 bg-neutral-100 rounded w-20"></div>
+                      <div className="h-6 bg-neutral-100 rounded-full w-24" />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="h-4 bg-neutral-100 rounded w-24"></div>
+                      <div className="h-4 bg-neutral-100 rounded w-24" />
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="h-4 bg-neutral-100 rounded w-10 ml-auto"></div>
+                    <td className="px-6 py-4 text-right">
+                      <div className="h-8 w-8 bg-neutral-100 rounded-lg ml-auto" />
                     </td>
                   </tr>
                 ))
-              ) : ambassadors.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-6 py-12 text-center text-neutral-500"
-                  >
-                    No ambassadors found matching your criteria.
-                  </td>
-                </tr>
               ) : (
                 ambassadors.map((ambassador: any) => (
                   <tr
                     key={ambassador._id}
-                    className="hover:bg-neutral-50/50 transition-colors cursor-pointer"
+                    className="hover:bg-neutral-50/50 transition-colors cursor-pointer group"
                     onClick={() => handleRowClick(ambassador)}
                   >
-                    <td className="px-4 py-3 sm:px-6 sm:py-4">
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center font-bold text-xs uppercase">
+                        <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black text-xs uppercase shadow-sm group-hover:scale-110 transition-transform">
                           {ambassador.firstName?.[0]}
                           {ambassador.lastName?.[0]}
                         </div>
                         <div>
-                          <p className="font-heading font-semibold text-neutral-900">
+                          <p className="font-heading font-bold text-neutral-900 group-hover:text-blue-600 transition-colors">
                             {ambassador.firstName} {ambassador.lastName}
                           </p>
-                          <p className="text-xs text-neutral-500">
+                          <p className="text-xs text-neutral-400 font-medium">
                             {ambassador.email}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 sm:px-6 sm:py-4">
+                    <td className="px-6 py-4">
                       <span
                         className={cn(
-                          "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                          "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
                           ambassador.accountStatus === "ACTIVE"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-green-50 text-green-700 border border-green-100"
                             : ambassador.accountStatus === "SUSPENDED"
-                              ? "bg-red-100 text-red-700"
+                              ? "bg-red-50 text-red-700 border border-red-100"
                               : ambassador.accountStatus === "PASSWORD_PENDING"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-blue-100 text-blue-700"
+                                ? "bg-amber-50 text-amber-700 border border-amber-100"
+                                : "bg-blue-50 text-blue-700 border border-blue-100"
                         )}
                       >
                         {ambassador.accountStatus}
                       </span>
                     </td>
-                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-sm text-neutral-500">
-                      {new Date(ambassador.createdAt).toLocaleDateString()}
+                    <td className="px-6 py-4 text-sm text-neutral-500 font-medium">
+                      {new Date(ambassador.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </td>
-                    <td className="px-4 py-3 sm:px-6 sm:py-4 text-right">
-                      <button className="text-neutral-400 hover:text-blue-600 transition-colors">
-                        <UserPlus size={18} className="rotate-45" />
-                      </button>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end">
+                        <div className="w-8 h-8 rounded-lg bg-neutral-50 text-neutral-400 flex items-center justify-center group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
+                          <ChevronRight size={18} />
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -321,45 +319,112 @@ const FellowsListPage = () => {
           </table>
         </div>
 
+        {/* Mobile View - Card Layout */}
+        <div className="md:hidden divide-y divide-neutral-50">
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="p-5 animate-pulse space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-neutral-100 rounded-xl" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-neutral-100 rounded w-2/3" />
+                    <div className="h-3 bg-neutral-100 rounded w-1/2" />
+                  </div>
+                </div>
+                <div className="flex justify-between items-center pt-2">
+                  <div className="h-6 bg-neutral-100 rounded-full w-24" />
+                  <div className="h-4 bg-neutral-100 rounded w-20" />
+                </div>
+              </div>
+            ))
+          ) : (
+            ambassadors.map((ambassador: any) => (
+              <div
+                key={ambassador._id}
+                className="p-5 active:bg-neutral-50 transition-colors cursor-pointer"
+                onClick={() => handleRowClick(ambassador)}
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black text-sm uppercase shadow-sm shrink-0">
+                    {ambassador.firstName?.[0]}
+                    {ambassador.lastName?.[0]}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-heading font-bold text-neutral-900 truncate">
+                      {ambassador.firstName} {ambassador.lastName}
+                    </p>
+                    <p className="text-xs text-neutral-400 font-medium truncate">
+                      {ambassador.email}
+                    </p>
+                  </div>
+                  <ChevronRight size={18} className="ml-auto text-neutral-300" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span
+                    className={cn(
+                      "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border",
+                      ambassador.accountStatus === "ACTIVE"
+                        ? "bg-green-50 text-green-700 border-green-100"
+                        : ambassador.accountStatus === "SUSPENDED"
+                          ? "bg-red-50 text-red-700 border-red-100"
+                          : ambassador.accountStatus === "PASSWORD_PENDING"
+                            ? "bg-amber-50 text-amber-700 border-amber-100"
+                            : "bg-blue-50 text-blue-700 border-blue-100"
+                    )}
+                  >
+                    {ambassador.accountStatus}
+                  </span>
+                  <p className="text-[10px] text-neutral-400 font-black uppercase tracking-widest">
+                    Joined {new Date(ambassador.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
         {/* Pagination */}
         {meta && meta.totalPages > 1 && (
-          <div className="px-6 py-4 bg-neutral-50/50 border-t border-neutral-100 flex items-center justify-between">
-            <p className="text-xs text-neutral-500 font-medium">
-              Showing <span className="text-neutral-900">{meta.total}</span>{" "}
-              ambassadors
+          <div className="px-4 md:px-6 py-4 bg-neutral-50/50 border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[10px] md:text-xs text-neutral-400 font-black uppercase tracking-widest">
+              Showing <span className="text-neutral-900">{ambassadors.length}</span> of <span className="text-neutral-900">{meta.total}</span> fellows
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 md:gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="h-8 md:h-9 w-8 md:w-9 p-0 rounded-lg md:rounded-xl"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
               >
                 <ChevronLeft size={16} />
               </Button>
               <div className="flex items-center gap-1">
-                {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map(
-                  (p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={cn(
-                        "w-8 h-8 rounded-lg text-xs font-bold transition-all",
-                        page === p
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                          : "text-neutral-500 hover:bg-neutral-100"
+                {Array.from({ length: meta.totalPages }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === meta.totalPages || Math.abs(p - page) <= 1)
+                  .map((p, index, array) => (
+                    <React.Fragment key={p}>
+                      {index > 0 && array[index - 1] !== p - 1 && (
+                        <span className="text-neutral-300 px-1">...</span>
                       )}
-                    >
-                      {p}
-                    </button>
-                  )
-                )}
+                      <button
+                        onClick={() => setPage(p)}
+                        className={cn(
+                          "w-8 md:w-9 h-8 md:h-9 rounded-lg md:rounded-xl text-xs font-black transition-all",
+                          page === p
+                            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                            : "text-neutral-500 hover:bg-white hover:shadow-sm"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    </React.Fragment>
+                  ))}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="h-8 md:h-9 w-8 md:w-9 p-0 rounded-lg md:rounded-xl"
                 onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                 disabled={page === meta.totalPages}
               >

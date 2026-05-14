@@ -269,18 +269,18 @@ const TaskManagementPage = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
         <div>
-          <h1 className="text-2xl font-bold font-heading text-neutral-900">
+          <h1 className="text-2xl md:text-3xl font-black font-heading text-neutral-900 tracking-tight">
             Task Management
           </h1>
-          <p className="text-neutral-500 text-sm mt-1 font-heading">
+          <p className="text-neutral-500 text-sm md:text-base mt-1 font-medium">
             Create, assign, and track fellow tasks.
           </p>
         </div>
         <Button
           size="sm"
-          className="gap-2 h-11 px-6"
+          className="gap-2 h-10 md:h-12 px-6 rounded-xl md:rounded-2xl text-xs md:text-sm font-black font-heading w-full sm:w-auto"
           onClick={() => {
             setEditingTaskId(null);
             setFormData({
@@ -304,18 +304,18 @@ const TaskManagementPage = () => {
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex-1 w-full md:max-w-md">
+        <div className="flex-1 w-full md:max-w-md relative group">
           <Input
             placeholder="Search tasks..."
-            icon={<Search size={18} className="text-neutral-400" />}
-            className="h-11"
+            icon={<Search size={18} className="text-neutral-400 group-focus-within:text-blue-600 transition-colors" />}
+            className="h-11 md:h-12 rounded-xl md:rounded-2xl bg-white border-neutral-100 focus:bg-white transition-all font-medium"
           />
         </div>
-        <div className="flex items-center bg-white p-1 rounded-xl border border-neutral-100">
+        <div className="flex items-center bg-white p-1 rounded-xl md:rounded-2xl border border-neutral-100 shadow-sm self-end">
           <button
             onClick={() => setView("grid")}
             className={cn(
-              "p-2 rounded-lg transition-all",
+              "p-2 md:p-2.5 rounded-lg md:rounded-xl transition-all",
               view === "grid"
                 ? "bg-neutral-100 text-blue-600 shadow-sm"
                 : "text-neutral-400 hover:text-neutral-600"
@@ -326,7 +326,7 @@ const TaskManagementPage = () => {
           <button
             onClick={() => setView("list")}
             className={cn(
-              "p-2 rounded-lg transition-all",
+              "p-2 md:p-2.5 rounded-lg md:rounded-xl transition-all",
               view === "list"
                 ? "bg-neutral-100 text-blue-600 shadow-sm"
                 : "text-neutral-400 hover:text-neutral-600"
@@ -347,19 +347,19 @@ const TaskManagementPage = () => {
           ))}
         </div>
       ) : tasks.length === 0 ? (
-        <div className="bg-white border border-neutral-100 rounded-4xl p-16 text-center">
-          <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 size={40} className="text-blue-600" />
+        <div className="bg-white border border-neutral-100 rounded-3xl md:rounded-[3rem] p-10 md:p-24 text-center shadow-sm">
+          <div className="w-20 h-20 md:w-28 md:h-28 bg-blue-50 rounded-2xl md:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 md:mb-8 shadow-inner">
+            <CheckCircle2 size={32} className="text-blue-600 md:w-12 md:h-12" />
           </div>
-          <h2 className="text-xl font-bold font-heading text-neutral-900">
+          <h2 className="text-xl md:text-3xl font-black font-heading text-neutral-900 tracking-tight">
             No tasks created yet
           </h2>
-          <p className="text-neutral-500 mt-2 max-w-sm mx-auto">
+          <p className="text-neutral-500 mt-3 md:mt-4 max-w-sm mx-auto font-medium text-sm md:text-lg">
             Get started by creating your first task and assigning it to
             fellows.
           </p>
           <Button
-            className="mt-8"
+            className="mt-8 md:mt-10 h-12 md:h-14 px-8 md:px-10 rounded-xl md:rounded-2xl font-black font-heading"
             variant="outline"
             onClick={() => setIsModalOpen(true)}
           >
@@ -379,19 +379,19 @@ const TaskManagementPage = () => {
             <div
               key={task._id}
               className={cn(
-                "bg-white rounded-3xl border border-neutral-100 shadow-sm hover:shadow-md transition-all group overflow-hidden",
-                view === "list" && "flex items-center p-4 gap-6"
+                "bg-white rounded-2xl md:rounded-[2rem] border border-neutral-100 shadow-sm hover:shadow-2xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all duration-300 group overflow-hidden flex flex-col",
+                view === "list" && "md:flex-row md:items-center md:p-2"
               )}
             >
               <div
                 className={cn(
-                  "p-6",
-                  view === "list" && "p-0 flex-1 flex items-center gap-6"
+                  "p-6 md:p-8 flex-1",
+                  view === "list" && "p-4 md:p-4 flex flex-row items-center gap-4 md:gap-6"
                 )}
               >
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 mb-4",
+                    "w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 mb-6 transition-all duration-300 group-hover:scale-110 shadow-sm",
                     task.verificationType === "AUTO"
                       ? "bg-green-50 text-green-600"
                       : "bg-blue-50 text-blue-600",
@@ -399,15 +399,15 @@ const TaskManagementPage = () => {
                   )}
                 >
                   {task.verificationType === "AUTO" ? (
-                    <CheckCircle2 size={24} />
+                    <CheckCircle2 size={24} className="md:w-7 md:h-7" />
                   ) : (
-                    <Clock size={24} />
+                    <Clock size={24} className="md:w-7 md:h-7" />
                   )}
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-1">
-                    <h3 className="font-bold font-heading text-neutral-900 group-hover:text-blue-600 transition-colors truncate">
+                  <div className="flex items-start justify-between mb-2 md:mb-3 gap-3">
+                    <h3 className="text-lg md:text-xl font-black font-heading text-neutral-900 group-hover:text-blue-600 transition-colors truncate tracking-tight">
                       {task.title}
                     </h3>
                     {view === "grid" && (
@@ -415,7 +415,7 @@ const TaskManagementPage = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="w-8 h-8 p-0 text-neutral-400 hover:text-blue-600"
+                          className="w-8 h-8 p-0 text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                           onClick={() => handleEditTask(task)}
                         >
                           <FileText size={16} />
@@ -423,7 +423,7 @@ const TaskManagementPage = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="w-8 h-8 p-0 text-neutral-400 hover:text-red-600"
+                          className="w-8 h-8 p-0 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                           onClick={() => handleDeleteTask(task._id)}
                         >
                           <Trash2 size={16} />
@@ -431,25 +431,19 @@ const TaskManagementPage = () => {
                       </div>
                     )}
                   </div>
-                  <p className="text-sm text-neutral-500 line-clamp-2 mb-4">
+                  <p className="text-xs md:text-sm text-neutral-500 line-clamp-2 mb-6 md:mb-8 leading-relaxed font-medium">
                     {task.explanation || task.description}
                   </p>
 
-                  <div className="flex items-center gap-4 text-xs font-heading font-medium">
-                    <div className="flex items-center gap-1.5 text-neutral-400">
-                      <Calendar size={14} />
-                      {new Date(task.dueDate).toLocaleString()}
+                  <div className="flex flex-wrap items-center gap-3 md:gap-4 font-heading">
+                    <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-black text-neutral-400 bg-neutral-50 px-3 md:px-4 py-1.5 md:py-2 rounded-xl uppercase tracking-widest border border-neutral-100">
+                      <Calendar size={12} className="text-neutral-300 md:w-[14px] md:h-[14px]" />
+                      {format(new Date(task.dueDate), "MMM d, HH:mm")}
                     </div>
-                    <div className="flex items-center gap-1.5 text-blue-600">
-                      <Users size={14} />
+                    <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-black text-blue-600 bg-blue-50 px-3 md:px-4 py-1.5 md:py-2 rounded-xl uppercase tracking-widest border border-blue-100">
+                      <Users size={12} className="text-blue-400 md:w-[14px] md:h-[14px]" />
                       {task.assignedTo?.length || 0} Assigned
                     </div>
-                    {task.createdBy && (
-                      <div className="flex items-center gap-1.5 text-neutral-400">
-                        <Users size={14} />
-                        BY {task.createdBy.firstName} {task.createdBy.lastName}
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -475,18 +469,18 @@ const TaskManagementPage = () => {
               </div>
 
               {view === "grid" && (
-                <div className="px-6 py-4 bg-neutral-50/50 border-t border-neutral-100 flex items-center justify-between">
-                  <span className="text-[10px] font-bold font-heading uppercase tracking-widest text-neutral-400">
-                    {task.type}
+                <div className="px-6 md:px-8 py-4 md:py-5 bg-neutral-50/50 border-t border-neutral-100 flex items-center justify-between mt-auto group-hover:bg-white transition-colors">
+                  <span className="text-[9px] md:text-[10px] font-black font-heading uppercase tracking-[0.2em] text-neutral-400">
+                    {task.type} Protocol
                   </span>
                   <button
                     onClick={() => navigate(`/tasks/${task._id}/submissions`)}
-                    className="text-blue-600 font-bold font-heading text-xs flex items-center gap-1 group/btn"
+                    className="text-blue-600 font-black font-heading text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-1.5 md:gap-2 group/btn hover:translate-x-1 md:hover:translate-x-2 transition-transform"
                   >
                     View Details{" "}
                     <ChevronRight
                       size={14}
-                      className="group-hover/btn:translate-x-0.5 transition-transform"
+                      className="md:w-4 md:h-4"
                     />
                   </button>
                 </div>

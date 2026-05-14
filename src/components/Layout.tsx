@@ -22,17 +22,29 @@ import NotificationDropdown from "./NotificationDropdown";
 import UserDropdown from "./UserDropdown";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(
-    window.innerWidth >= 768
-  );
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
   const hoverTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile && !isSidebarOpen) {
+        setIsSidebarOpen(true);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Set initial state correctly
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isSidebarOpen]);
 
   // effectiveOpen is true if explicitly open OR currently hovered
   const effectiveOpen = isSidebarOpen || isHovered;
@@ -51,14 +63,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   // Close sidebar on mobile route change
   React.useEffect(() => {
-    if (window.innerWidth < 768) {
+    if (isMobile) {
       setIsSidebarOpen(false);
       setIsHovered(false);
     }
-  }, [location.pathname]);
+  }, [location.pathname, isMobile]);
 
   const handleMouseEnter = () => {
-    if (!isSidebarOpen && !isHovered) {
+    if (!isMobile && !isSidebarOpen && !isHovered) {
       hoverTimeoutRef.current = setTimeout(() => {
         setIsHovered(true);
       }, 300);
@@ -88,9 +100,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-[#FDFDFD] flex">
       {/* Mobile Backdrop */}
-      {effectiveOpen && window.innerWidth < 768 && (
+      {effectiveOpen && isMobile && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden transition-all"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -98,7 +110,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Sidebar */}
       <aside
         className={cn(
-          "bg-prussian-blue border-r border-blue-700 flex flex-col transition-all duration-300 z-50 fixed md:sticky top-0 h-screen",
+          "bg-prussian-blue border-r border-blue-700 flex flex-col transition-all duration-300 z-50",
+          isMobile ? "fixed h-screen" : "sticky top-0 h-screen",
           effectiveOpen
             ? "translate-x-0 w-72"
             : "-translate-x-full md:translate-x-0 md:w-20"
@@ -106,16 +119,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="p-2 flex items-center gap-3 justify-center">
+        <div className="p-4 flex items-center gap-3 justify-center relative">
           {effectiveOpen ? (
-            <span className="font-bold text-xl tracking-tight text-neutral-900">
+            <div className="flex items-center gap-3 w-full animate-in fade-in slide-in-from-left-4">
               <img
                 src="/images/nextif-logo-lg.png"
                 alt="logo"
-                title="logo"
                 className="h-10 w-auto"
               />
-            </span>
+            </div>
           ) : (
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -123,9 +135,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             >
               <img
                 src="/images/nextif-logo-3.png"
-                title="mini-logo"
                 alt="mini-logo"
-                className="size-12 pt-1 hidden md:block"
+                className="size-10 pt-1"
               />
             </button>
           )}
@@ -138,20 +149,21 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <X size={24} />
           </button>
 
-          {/* Desktop Toggle Button - Only visible when open OR effectively open due to hover */}
-          {/* We want to show the close button if it's effectively open so user can pin/unpin or close it */}
-          <button
-            onClick={() => {
-              setIsSidebarOpen(false);
-              setIsHovered(false);
-            }}
-            className="p-2 cursor-pointer transition-colors text-neutral-400 hidden md:block absolute right-2 top-3"
-          >
-            {effectiveOpen ? <X size={24} className="text-blue-300" /> : null}
-          </button>
+          {/* Desktop Toggle Button */}
+          {effectiveOpen && !isMobile && (
+            <button
+              onClick={() => {
+                setIsSidebarOpen(!isSidebarOpen);
+                setIsHovered(false);
+              }}
+              className="p-2 cursor-pointer transition-colors text-blue-300 hidden md:block absolute right-2"
+            >
+              <Menu size={20} />
+            </button>
+          )}
         </div>
 
-        <nav className="flex-1 px-4 mt-8 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 mt-8 space-y-1.5 overflow-y-auto custom-scrollbar">
           {links.map((link) => {
             const isActive = location.pathname === link.href;
             return (
@@ -162,7 +174,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                   "flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all group",
                   isActive
                     ? "bg-blue-600 text-white shadow-xl shadow-blue-600/20"
-                    : "text-blue-300 hover:bg-neutral-50 hover:text-neutral-900"
+                    : "text-blue-300 hover:bg-white/10 hover:text-white"
                 )}
               >
                 <link.icon
@@ -170,10 +182,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     "w-5 h-5 shrink-0",
                     isActive
                       ? "text-white"
-                      : "text-blue-300 group-hover:text-blue-600"
+                      : "text-blue-300 group-hover:text-white"
                   )}
                 />
-                {(effectiveOpen || window.innerWidth < 768) && (
+                {(effectiveOpen || !isMobile) && (
                   <span className="font-heading font-bold text-sm">
                     {link.name}
                   </span>
@@ -183,14 +195,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           })}
         </nav>
 
-        <div className="p-4 mt-auto">
+        <div className="p-4 mt-auto border-t border-blue-700/50">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-4 w-full px-4 py-3.5 text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all group"
+            className="flex items-center gap-4 w-full px-4 py-3.5 text-blue-300 hover:text-red-400 hover:bg-red-500/10 rounded-2xl transition-all group"
           >
-            <LogOut className="w-5 h-5 group-hover:text-red-600 shrink-0" />
-            {(effectiveOpen || window.innerWidth < 768) && (
-              <span className="font-heading font-bold text-blue-300 text-sm">
+            <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform shrink-0" />
+            {(effectiveOpen || !isMobile) && (
+              <span className="font-heading font-bold text-sm">
                 Sign Out
               </span>
             )}
@@ -200,31 +212,43 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 md:h-20 bg-royal-blue/10 backdrop-blur-md border-b border-neutral-100 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30">
-          <button
-            className="md:hidden text-neutral-500 p-2 -ml-2"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            <Menu size={24} />
-          </button>
+        <header className="h-16 md:h-20 bg-white/70 backdrop-blur-md border-b border-neutral-100 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <button
+              className="md:hidden text-neutral-500 p-2 hover:bg-neutral-50 rounded-xl transition-colors"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <div className="hidden md:block">
+               <h2 className="text-xl font-heading font-black text-neutral-900">
+                {links.find((l) => l.href === location.pathname)?.name || "Dashboard"}
+              </h2>
+            </div>
+            {isMobile && (
+              <div className="md:hidden">
+                <img src="/images/nextif-logo-3.png" alt="logo" className="h-8 w-auto" />
+              </div>
+            )}
+          </div>
 
-          <div className="flex-1 flex justify-end items-center gap-3 md:gap-4">
+          <div className="flex-1 flex justify-end items-center gap-2 md:gap-4">
             <div className="relative">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleDropdown();
                 }}
-                className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-neutral-900 transition-colors relative"
+                className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all relative"
               >
                 <Bell size={20} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white ring-2 ring-white"></span>
+                  <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-600 rounded-full border-2 border-white ring-2 ring-white"></span>
                 )}
               </button>
               <NotificationDropdown />
             </div>
-            <div className="h-6 w-px bg-neutral-100 mx-1 md:mx-2"></div>
+            <div className="h-6 md:h-8 w-px bg-neutral-100 mx-1 md:mx-2"></div>
             <div className="relative">
               <button
                 onClick={(e) => {
@@ -264,7 +288,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </header>
 
-        <div className="p-4 md:p-8 pb-12">{children}</div>
+        <div className="p-4 md:p-8 pb-12 overflow-x-hidden">{children}</div>
       </main>
     </div>
   );

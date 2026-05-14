@@ -17,20 +17,20 @@ const StatCard = ({ title, value, icon: Icon, color, trend }: any) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-white p-6 rounded-3xl border border-neutral-100 shadow-sm"
+    className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-neutral-100 shadow-sm"
   >
-    <div className="flex justify-between items-start mb-4">
-      <div className={cn("p-3 rounded-2xl", color)}>
-        <Icon className="w-6 h-6 text-white" />
+    <div className="flex justify-between items-start mb-3 md:mb-4">
+      <div className={cn("p-2.5 md:p-3 rounded-xl md:rounded-2xl shadow-lg shadow-blue-600/10", color)}>
+        <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
       </div>
       {trend && (
-        <span className="flex items-center gap-1 text-green-600 text-xs font-bold bg-green-50 px-2 py-1 rounded-full">
-          <TrendingUp size={12} /> {trend}
+        <span className="flex items-center gap-1 text-green-600 text-[10px] md:text-xs font-bold bg-green-50 px-2 py-1 rounded-full">
+          <TrendingUp size={10} className="md:w-3 md:h-3" /> {trend}
         </span>
       )}
     </div>
-    <p className="text-neutral-500 text-sm font-medium">{title}</p>
-    <h3 className="text-3xl font-heading font-bold text-neutral-900 mt-1">
+    <p className="text-neutral-500 text-xs md:text-sm font-medium">{title}</p>
+    <h3 className="text-2xl md:text-3xl font-heading font-black text-neutral-900 mt-1 tracking-tight">
       {value}
     </h3>
   </motion.div>
@@ -96,10 +96,10 @@ const AdminDashboard = () => {
   const { stats, recentActivity } = data;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700">
       <div>
-        <h1 className="text-3xl font-bold text-neutral-900">Admin Overview</h1>
-        <p className="text-neutral-500 mt-1">
+        <h1 className="text-2xl md:text-3xl font-black font-heading text-neutral-900 tracking-tight">Admin Overview</h1>
+        <p className="text-neutral-500 mt-1 text-sm md:text-base font-medium">
           Manage fellows and oversee platform activities.
         </p>
       </div>
@@ -137,38 +137,41 @@ const AdminDashboard = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-neutral-100">
-            <h2 className="text-lg font-bold text-neutral-900">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="lg:col-span-2 bg-white rounded-2xl md:rounded-3xl border border-neutral-100 shadow-sm overflow-hidden">
+          <div className="p-5 md:p-6 border-b border-neutral-100 bg-neutral-50/30">
+            <h2 className="text-base md:text-lg font-black font-heading text-neutral-900">
               Recent Fellow Activity
             </h2>
           </div>
-          <div className="p-4 sm:p-6">
+          <div className="p-0 md:p-6">
             <div className="overflow-x-auto">
               {recentActivity.length > 0 ? (
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="text-neutral-400 text-xs font-heading font-bold uppercase tracking-wider">
-                      <th className="pb-4">Fellow</th>
-                      <th className="pb-4">Task</th>
-                      <th className="pb-4">Status</th>
-                      <th className="pb-4">Time</th>
+                    <tr className="text-neutral-400 text-[10px] md:text-xs font-heading font-black uppercase tracking-wider border-b border-neutral-50">
+                      <th className="px-5 md:px-0 pb-3 md:pb-4">Fellow</th>
+                      <th className="hidden md:table-cell pb-4">Task</th>
+                      <th className="pb-3 md:pb-4 text-center md:text-left">Status</th>
+                      <th className="pr-5 md:pr-0 pb-3 md:pb-4 text-right">Time</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-50">
                     {recentActivity.map((row: any, i: number) => (
-                      <tr key={i} className="text-sm">
-                        <td className="py-4 font-semibold text-neutral-900">
-                          {row.ambassadorName}
+                      <tr key={i} className="text-xs md:text-sm hover:bg-neutral-50 transition-colors">
+                        <td className="px-5 md:px-0 py-4 font-bold text-neutral-900">
+                          <div className="flex flex-col">
+                            <span>{row.ambassadorName}</span>
+                            <span className="md:hidden text-[10px] text-neutral-400 font-medium mt-0.5 line-clamp-1">{row.taskTitle}</span>
+                          </div>
                         </td>
-                        <td className="py-4 text-neutral-500">
+                        <td className="hidden md:table-cell py-4 text-neutral-500 font-medium">
                           {row.taskTitle}
                         </td>
-                        <td className="py-4">
+                        <td className="py-4 text-center md:text-left">
                           <span
                             className={cn(
-                              "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                              "px-2 md:px-2.5 py-0.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest",
                               row.status === "COMPLETED"
                                 ? "bg-green-100 text-green-700"
                                 : row.status === "REJECTED"
@@ -181,7 +184,7 @@ const AdminDashboard = () => {
                               : row.status}
                           </span>
                         </td>
-                        <td className="py-4 text-neutral-400 text-xs">
+                        <td className="pr-5 md:pr-0 py-4 text-neutral-400 text-[10px] md:text-xs text-right font-medium">
                           {formatDistanceToNow(row.time)}
                         </td>
                       </tr>
@@ -197,11 +200,11 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-neutral-100 shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-6 border-b border-neutral-100">
-            <h2 className="text-lg font-bold text-neutral-900">System Tasks</h2>
+        <div className="bg-white rounded-2xl md:rounded-3xl border border-neutral-100 shadow-sm overflow-hidden">
+          <div className="p-5 md:p-6 border-b border-neutral-100 bg-neutral-50/30">
+            <h2 className="text-base md:text-lg font-black font-heading text-neutral-900">System Tasks</h2>
           </div>
-          <div className="p-4 sm:p-6 space-y-4">
+          <div className="p-5 md:p-6 space-y-3 md:space-y-4">
             <Link to="/fellows/bulk">
               <Button
                 variant="outline"
