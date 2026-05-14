@@ -29,6 +29,7 @@ const FellowsListPage = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedAmbassador, setSelectedAmbassador] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [formError, setFormError] = useState("");
   const [newAmbassador, setNewAmbassador] = useState({
     firstName: "",
@@ -119,6 +120,32 @@ const FellowsListPage = () => {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      const response = await axiosInstance.get("/admin/ambassadors/export", {
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `fellows_export_${new Date().toISOString().split("T")[0]}.csv`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Fellow list exported successfully!");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export fellow list");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await axiosInstance.delete(`/admin/ambassadors/${id}`);
@@ -147,7 +174,13 @@ const FellowsListPage = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={handleExport}
+            isLoading={isExporting}
+          >
             <Download size={16} /> Export
           </Button>
           <Button
