@@ -16,6 +16,7 @@ import {
   Video,
   FileText,
   Link as LinkIcon,
+  Download,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../api/axiosInstance";
@@ -90,6 +91,31 @@ const TaskManagementPage = () => {
     fetchTasks();
     fetchAmbassadors();
   }, []);
+
+  const handleExportReport = async () => {
+    try {
+      const response = await axiosInstance.get("/tasks/submissions/export", {
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `task_performance_report_${format(new Date(), "yyyy-MM-dd")}.csv`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Report downloaded successfully");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to download report");
+    }
+  };
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,29 +304,39 @@ const TaskManagementPage = () => {
             Create, assign, and track fellow tasks.
           </p>
         </div>
-        <Button
-          size="sm"
-          className="gap-2 h-10 md:h-12 px-6 rounded-xl md:rounded-2xl text-xs md:text-sm font-black font-heading w-full sm:w-auto"
-          onClick={() => {
-            setEditingTaskId(null);
-            setFormData({
-              title: "",
-              explanation: "",
-              type: "ADHOC",
-              verificationType: "ADMIN",
-              dueDate: "",
-              assignedTo: [],
-              rewardPoints: 0,
-              isBonus: false,
-              requirements: ["TEXT"],
-              whatToDo: [],
-              materials: [],
-            });
-            setIsModalOpen(true);
-          }}
-        >
-          <Plus size={18} /> Create New Task
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 h-10 md:h-12 px-6 rounded-xl md:rounded-2xl text-xs md:text-sm font-black font-heading w-full sm:w-auto"
+            onClick={handleExportReport}
+          >
+            <Download size={18} /> Download Report
+          </Button>
+          <Button
+            size="sm"
+            className="gap-2 h-10 md:h-12 px-6 rounded-xl md:rounded-2xl text-xs md:text-sm font-black font-heading w-full sm:w-auto"
+            onClick={() => {
+              setEditingTaskId(null);
+              setFormData({
+                title: "",
+                explanation: "",
+                type: "ADHOC",
+                verificationType: "ADMIN",
+                dueDate: "",
+                assignedTo: [],
+                rewardPoints: 0,
+                isBonus: false,
+                requirements: ["TEXT"],
+                whatToDo: [],
+                materials: [],
+              });
+              setIsModalOpen(true);
+            }}
+          >
+            <Plus size={18} /> Create New Task
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
