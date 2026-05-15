@@ -36,6 +36,7 @@ const AttendanceManagementPage = () => {
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [loadingAttendees, setLoadingAttendees] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resending, setResending] = useState<string | null>(null);
   const [globalPoints, setGlobalPoints] = useState(5);
 
   useEffect(() => {
@@ -112,6 +113,21 @@ const AttendanceManagementPage = () => {
       alert("Failed to save attendance.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleResendNotifications = async (eventId: string) => {
+    if (!window.confirm("Are you sure you want to resend notifications for this event? This will send emails to all fellows and admins.")) return;
+    
+    setResending(eventId);
+    try {
+      await api.post(`/events/${eventId}/resend-notifications`);
+      alert("Notifications resent successfully!");
+    } catch (error) {
+      console.error("Error resending notifications:", error);
+      alert("Failed to resend notifications.");
+    } finally {
+      setResending(null);
     }
   };
 
@@ -328,6 +344,13 @@ const AttendanceManagementPage = () => {
                               className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-8 py-4 shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
                             >
                               Save Briefing Log
+                            </Button>
+                            <Button 
+                              onClick={() => handleResendNotifications(event._id)} 
+                              isLoading={resending === event._id}
+                              className="bg-amber-500 hover:bg-amber-600 text-white rounded-2xl px-8 py-4 shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+                            >
+                              Resend Invites
                             </Button>
                           </div>
                         </div>

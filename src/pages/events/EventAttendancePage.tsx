@@ -28,6 +28,7 @@ const EventAttendancePage = () => {
   const [eventTitle, setEventTitle] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [resending, setResending] = useState(false);
   const [globalPoints, setGlobalPoints] = useState(5); // Default to 5 points
 
   useEffect(() => {
@@ -89,6 +90,21 @@ const EventAttendancePage = () => {
       alert("Failed to save attendance.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleResendNotifications = async () => {
+    if (!window.confirm("Are you sure you want to resend notifications for this event? This will send emails to all fellows and admins.")) return;
+    
+    setResending(true);
+    try {
+      await api.post(`/events/${id}/resend-notifications`);
+      alert("Notifications resent successfully!");
+    } catch (error) {
+      console.error("Error resending notifications:", error);
+      alert("Failed to resend notifications.");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -232,12 +248,19 @@ const EventAttendancePage = () => {
               className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200 font-bold text-sm hover:bg-emerald-100 transition-colors inline-flex items-center h-10"
             >
               Download CSV
-            </button>
-          </div>
-          <Button onClick={handleSave} isLoading={saving}>
-            Save Attendance
-          </Button>
-        </div>
+              </button>
+              <Button 
+              onClick={handleResendNotifications} 
+              isLoading={resending}
+              className="bg-amber-500 hover:bg-amber-600 text-white h-10 px-6 rounded-xl font-bold text-sm"
+              >
+              Resend Invites
+              </Button>
+              <Button onClick={handleSave} isLoading={saving}>
+              Save Attendance
+              </Button>
+              </div>
+              </div>
       </div>
 
       {loading ? (

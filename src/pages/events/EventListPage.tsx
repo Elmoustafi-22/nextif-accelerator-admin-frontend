@@ -27,6 +27,7 @@ interface Event {
 const EventListPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [resending, setResending] = useState<string | null>(null);
 
   const fetchEvents = async () => {
     try {
@@ -55,6 +56,21 @@ const EventListPage = () => {
       setEvents(events.filter((e) => e._id !== id));
     } catch (error) {
       console.error("Error deleting event:", error);
+    }
+  };
+
+  const handleResendNotifications = async (eventId: string) => {
+    if (!window.confirm("Are you sure you want to resend notifications for this event? This will send emails to all fellows and admins.")) return;
+    
+    setResending(eventId);
+    try {
+      await api.post(`/events/${eventId}/resend-notifications`);
+      alert("Notifications resent successfully!");
+    } catch (error) {
+      console.error("Error resending notifications:", error);
+      alert("Failed to resend notifications.");
+    } finally {
+      setResending(null);
     }
   };
 
@@ -144,6 +160,15 @@ const EventListPage = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3 self-end md:self-center">
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="bg-amber-500 hover:bg-amber-600 text-white h-10 md:h-12 rounded-xl md:rounded-2xl font-black font-heading text-[10px] md:text-xs uppercase tracking-widest gap-2"
+                  onClick={() => handleResendNotifications(event._id)}
+                  isLoading={resending === event._id}
+                >
+                  Resend Invites
+                </Button>
                 <Link to={`/events/${event._id}/attendance`} className="flex-1 sm:flex-none">
                   <Button variant="secondary" size="sm" className="w-full h-10 md:h-12 rounded-xl md:rounded-2xl font-black font-heading text-[10px] md:text-xs uppercase tracking-widest gap-2">
                     <UserGroupIcon className="w-4 h-4" />
