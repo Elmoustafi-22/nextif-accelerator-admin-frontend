@@ -38,6 +38,7 @@ const AttendanceManagementPage = () => {
   const [saving, setSaving] = useState(false);
   const [resending, setResending] = useState<string | null>(null);
   const [globalPoints, setGlobalPoints] = useState(5);
+  const [excusedPoints, setExcusedPoints] = useState(2); // Default to 2 points for excused
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -52,6 +53,23 @@ const AttendanceManagementPage = () => {
     };
     fetchEvents();
   }, []);
+
+  // Synchronize changes to global/excused points across already marked fellows
+  useEffect(() => {
+    setAttendees((prev) =>
+      prev.map((a) =>
+        a.attendanceStatus === "PRESENT" ? { ...a, marks: globalPoints } : a
+      )
+    );
+  }, [globalPoints]);
+
+  useEffect(() => {
+    setAttendees((prev) =>
+      prev.map((a) =>
+        a.attendanceStatus === "EXCUSED" ? { ...a, marks: excusedPoints } : a
+      )
+    );
+  }, [excusedPoints]);
 
   const toggleEvent = async (eventId: string) => {
     if (expandedEventId === eventId) {
@@ -82,7 +100,12 @@ const AttendanceManagementPage = () => {
           ? {
             ...a,
             attendanceStatus: status,
-            marks: status === "PRESENT" ? globalPoints : 0,
+            marks:
+              status === "PRESENT"
+                ? globalPoints
+                : status === "EXCUSED"
+                ? excusedPoints
+                : 0,
           }
           : a
       )
@@ -210,14 +233,25 @@ const AttendanceManagementPage = () => {
             Manage attendance for all training sessions and tactical meetings.
           </p>
         </div>
-        <div className="bg-white p-5 rounded-[2rem] border border-neutral-200 flex items-center gap-4 shadow-sm">
-          <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Global Session Points:</span>
-          <input
-            type="number"
-            value={globalPoints}
-            onChange={(e) => setGlobalPoints(parseInt(e.target.value) || 0)}
-            className="w-20 px-3 py-2 border border-neutral-100 bg-neutral-50 rounded-xl text-center font-black text-neutral-900 focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
-          />
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="bg-white p-5 rounded-[2rem] border border-neutral-200 flex items-center gap-4 shadow-sm">
+            <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Global Session Points:</span>
+            <input
+              type="number"
+              value={globalPoints}
+              onChange={(e) => setGlobalPoints(parseInt(e.target.value) || 0)}
+              className="w-20 px-3 py-2 border border-neutral-100 bg-neutral-50 rounded-xl text-center font-black text-neutral-900 focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
+            />
+          </div>
+          <div className="bg-white p-5 rounded-[2rem] border border-neutral-200 flex items-center gap-4 shadow-sm">
+            <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Global Excused Points:</span>
+            <input
+              type="number"
+              value={excusedPoints}
+              onChange={(e) => setExcusedPoints(parseInt(e.target.value) || 0)}
+              className="w-20 px-3 py-2 border border-neutral-100 bg-neutral-50 rounded-xl text-center font-black text-neutral-900 focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
+            />
+          </div>
         </div>
       </div>
 
@@ -313,6 +347,12 @@ const AttendanceManagementPage = () => {
                               <div className="w-2.5 h-2.5 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
                               <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
                                 Absent: <b className="text-rose-600 ml-1">{attendees.filter(a => a.attendanceStatus === 'ABSENT').length}</b>
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+                              <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
+                                Excused: <b className="text-yellow-600 ml-1">{attendees.filter(a => a.attendanceStatus === 'EXCUSED').length}</b>
                               </span>
                             </div>
                           </div>

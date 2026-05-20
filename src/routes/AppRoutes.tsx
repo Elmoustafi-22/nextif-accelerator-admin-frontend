@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate, Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import ProtectedRoute from "../components/ProtectedRoute";
-import { useAuthStore } from "../store/useAuthStore";
 
 import LoginPage from "../pages/LoginPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
@@ -21,22 +20,20 @@ import AttendanceManagementPage from "../pages/events/AttendanceManagementPage";
 import AdminDirectoryPage from "../pages/admins/AdminDirectoryPage";
 import LeaderboardPage from "../pages/LeaderboardPage";
 import RecordingsPage from "../pages/RecordingsPage";
+import PaymentsPage from "../pages/PaymentsPage";
 import Layout from "../components/Layout";
 
 // Placeholder components
 const Unauthorized = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
-  const redirectPath = isAuthenticated ? "/dashboard" : "/login";
-  const redirectLabel = isAuthenticated ? "dashboard" : "login page";
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate(redirectPath, { replace: true });
+      navigate("/login", { replace: true });
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [navigate, redirectPath]);
+  }, [navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#FDFDFD] p-8 text-center">
@@ -45,7 +42,7 @@ const Unauthorized = () => {
       </div>
       <h2 className="text-3xl font-black font-heading text-neutral-900 tracking-tight">Unauthorized Access</h2>
       <p className="mt-4 text-neutral-500 font-medium">You don't have permission to view this page.</p>
-      <p className="mt-2 text-sm text-neutral-400 font-bold uppercase tracking-widest">Redirecting to your {redirectLabel} in 5 seconds...</p>
+      <p className="mt-2 text-sm text-neutral-400 font-bold uppercase tracking-widest">Redirecting to login in 5 seconds...</p>
     </div>
   );
 };
@@ -73,6 +70,7 @@ const AppRoutes = () => {
           />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/team" element={<AdminDirectoryPage />} />
+          <Route path="/payments" element={<PaymentsPage />} />
           <Route path="/complaints" element={<ComplaintsPage />} />
           <Route path="/announcements" element={<AnnouncementsPage />} />
 

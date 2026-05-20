@@ -13,6 +13,8 @@ import Button from "./Button";
 import Input from "./Input";
 import { cn } from "../utils/cn";
 import axiosInstance from "../api/axiosInstance";
+import { useAuthStore } from "../store/useAuthStore";
+import { toast } from "../store/useToastStore";
 
 interface Admin {
   _id: string;
@@ -30,20 +32,53 @@ interface AdminDetailsModalProps {
   admin: Admin;
   isOpen: boolean;
   onClose: () => void;
+  onAdminDeleted?: (id: string) => void;
 }
 
 const AdminDetailsModal = ({
   admin,
   isOpen,
   onClose,
+  onAdminDeleted,
 }: AdminDetailsModalProps) => {
+  const { user: currentUser } = useAuthStore();
   const [activeTab, setActiveTab] = useState<"details" | "message">("details");
   const [messageSubject, setMessageSubject] = useState("");
   const [messageBody, setMessageBody] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!admin) return null;
+
+  const currentUserTitleLower = (currentUser?.title || "").toLowerCase().trim();
+  const isSuperAdmin = currentUserTitleLower === "tech lead" || currentUserTitleLower === "ceo" || currentUserTitleLower === "chief executive officer";
+  const canDelete = isSuperAdmin && currentUser?.id !== admin._id;
+
+  const handleDeleteAdmin = async () => {
+    if (
+      !window.confirm(
+        `Are you absolutely sure you want to delete ${admin.firstName} ${admin.lastName}? This action is irreversible.`
+      )
+    ) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await axiosInstance.delete(`/admin/list/${admin._id}`);
+      toast.success("Administrator deleted successfully");
+      onClose();
+      if (onAdminDeleted) {
+        onAdminDeleted(admin._id);
+      }
+    } catch (err: any) {
+      console.error("Failed to delete admin:", err);
+      toast.error(err.response?.data?.message || "Failed to delete administrator");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,6 +235,27 @@ const AdminDetailsModal = ({
                       </p>
                     </div>
                   </div>
+
+                  {canDelete && (
+                    <div className="pt-6 border-t border-neutral-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                      <div className="text-left">
+                        <h4 className="text-sm font-bold text-red-600 uppercase tracking-wider">
+                          Danger Zone
+                        </h4>
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                          Permanently remove this administrator from the organization. This action cannot be undone.
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        isLoading={isDeleting}
+                        onClick={handleDeleteAdmin}
+                        className="border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 text-red-600 text-xs md:text-sm font-black font-heading shrink-0 px-6 h-11 rounded-xl"
+                      >
+                        Delete Team Member
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <form onSubmit={handleSendMessage} className="space-y-4">

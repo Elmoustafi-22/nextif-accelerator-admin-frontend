@@ -14,6 +14,7 @@ import {
   Users,
   Award,
   Video,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "../utils/cn";
 import { useAuthStore } from "../store/useAuthStore";
@@ -83,11 +84,18 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const titleLower = (user?.title || "").toLowerCase().trim();
+  const isSuperAdmin =
+    titleLower === "tech lead" ||
+    titleLower === "ceo" ||
+    titleLower === "chief executive officer";
+
   const links = [
     { name: "Dashboard", href: "/dashboard", icon: ShieldCheck },
     { name: "Manage Fellows", href: "/fellows", icon: UserIcon },
     { name: "Bulk Onboarding", href: "/fellows/bulk", icon: Upload },
     { name: "Manage Tasks", href: "/tasks", icon: CheckSquare },
+    ...(isSuperAdmin ? [{ name: "Payments", href: "/payments", icon: CreditCard }] : []),
     { name: "Complaints", href: "/complaints", icon: PlusCircle },
     { name: "Team", href: "/team", icon: Users }, // Admin Directory
     { name: "Events", href: "/events", icon: Calendar },

@@ -15,6 +15,8 @@ import {
   Twitter,
   Linkedin,
   Facebook,
+  Award,
+  Clock,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./Button";
@@ -22,6 +24,7 @@ import Input from "./Input";
 import { cn } from "../utils/cn";
 import axiosInstance from "../api/axiosInstance";
 import { toast } from "../store/useToastStore";
+import { useAuthStore } from "../store/useAuthStore";
 
 interface FellowDetailsModalProps {
   fellow: any;
@@ -40,9 +43,66 @@ const FellowDetailsModal = ({
   onForceReset,
   onDelete,
 }: FellowDetailsModalProps) => {
+  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<"details" | "message">("details");
   const [messageSubject, setMessageSubject] = useState("");
   const [messageBody, setMessageBody] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const titleLower = (user?.title || "").toLowerCase().trim();
+  const isSuperAdmin =
+    titleLower === "tech lead" ||
+    titleLower === "ceo" ||
+    titleLower === "chief executive officer";
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedFile(file);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  };
+
+  const handleConfirmUpload = async () => {
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    setIsUploading(true);
+    try {
+      const response = await axiosInstance.post(
+        `/admin/ambassadors/${fellow._id}/certificate`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      toast.success("Certificate uploaded successfully!");
+      fellow.profile.certificateUrl = response.data.certificateUrl;
+      handleCancelUpload();
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error: any) {
+      console.error("Certificate upload failed:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to upload certificate"
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+  };
   const [isSending, setIsSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState(false);
 
@@ -487,6 +547,129 @@ const FellowDetailsModal = ({
                           </div>
                         </div>
                       </div>
+
+                      {fellow.profile?.hasPaidCertificate && (
+                        <div className="p-6 bg-purple-50/50 rounded-2xl border border-purple-100/60 text-left">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center font-bold">
+                              <Award size={20} />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-purple-900">
+                                Program Certificate
+                              </h4>
+                              <p className="text-xs text-neutral-500">
+                                Fellow has completed payment for their certificate.
+                              </p>
+                            </div>
+                          </div>
+
+                          {fellow.profile?.certificateUrl ? (
+                            <div className="space-y-4">
+                              <div className="p-3 bg-white rounded-xl border border-purple-100 flex items-center justify-between">
+                                <span className="text-xs font-semibold text-neutral-600 truncate max-w-[280px]">
+                                  {fellow.profile.certificateUrl}
+                                </span>
+                                <a
+                                  href={fellow.profile.certificateUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs font-bold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100/70 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                  View Certificate
+                                </a>
+                              </div>
+                              {isSuperAdmin && !previewUrl && (
+                                <div className="space-y-2">
+                                  <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                                    Update Certificate File
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept=".pdf,.png,.jpg,.jpeg"
+                                    onChange={handleFileChange}
+                                    disabled={isUploading}
+                                    className="block w-full text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 cursor-pointer"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-800 text-xs font-medium flex items-center gap-2">
+                                <Clock size={16} /> Pending Certificate Generation & Upload
+                              </div>
+                              {isSuperAdmin && !previewUrl && (
+                                <div className="space-y-2">
+                                  <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                                    Upload Cloudinary Certificate
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept=".pdf,.png,.jpg,.jpeg"
+                                    onChange={handleFileChange}
+                                    disabled={isUploading}
+                                    className="block w-full text-xs text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 cursor-pointer"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {previewUrl && (
+                            <div className="space-y-4 p-4 bg-purple-50/50 rounded-2xl border border-purple-100 mt-4">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-black text-purple-950 uppercase tracking-wider">
+                                  Certificate File Preview:
+                                </span>
+                                <span className="text-xs text-neutral-500 font-medium">
+                                  {selectedFile?.name}
+                                </span>
+                              </div>
+                              <div className="w-full aspect-[4/3] bg-white rounded-xl border border-purple-100 overflow-hidden relative">
+                                {selectedFile?.type === "application/pdf" ? (
+                                  <iframe
+                                    src={previewUrl}
+                                    className="w-full h-full border-0 rounded-xl"
+                                    title="Certificate PDF Preview"
+                                  />
+                                ) : (
+                                  <img
+                                    src={previewUrl}
+                                    className="w-full h-full object-contain rounded-xl"
+                                    alt="Certificate Preview"
+                                  />
+                                )}
+                              </div>
+                              <div className="flex gap-3 justify-end">
+                                <button
+                                  type="button"
+                                  onClick={handleCancelUpload}
+                                  disabled={isUploading}
+                                  className="px-4 py-2 border border-neutral-200 text-neutral-600 hover:bg-neutral-50 font-bold text-xs rounded-xl transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleConfirmUpload}
+                                  disabled={isUploading}
+                                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-purple-600/10 transition-all flex items-center gap-2"
+                                >
+                                  {isUploading ? (
+                                    <>
+                                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                      Uploading...
+                                    </>
+                                  ) : (
+                                    "Confirm & Upload"
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       <div>
                         <h3 className="text-sm font-bold text-neutral-900 uppercase tracking-wider mb-4">

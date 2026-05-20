@@ -30,6 +30,7 @@ const EventAttendancePage = () => {
   const [saving, setSaving] = useState(false);
   const [resending, setResending] = useState(false);
   const [globalPoints, setGlobalPoints] = useState(5); // Default to 5 points
+  const [excusedPoints, setExcusedPoints] = useState(2); // Default to 2 points for excused
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,6 +49,23 @@ const EventAttendancePage = () => {
     fetchData();
   }, [id]);
 
+  // Synchronize changes to global/excused points across already marked fellows
+  useEffect(() => {
+    setAttendees((prev) =>
+      prev.map((a) =>
+        a.attendanceStatus === "PRESENT" ? { ...a, marks: globalPoints } : a
+      )
+    );
+  }, [globalPoints]);
+
+  useEffect(() => {
+    setAttendees((prev) =>
+      prev.map((a) =>
+        a.attendanceStatus === "EXCUSED" ? { ...a, marks: excusedPoints } : a
+      )
+    );
+  }, [excusedPoints]);
+
   const updateLocalStatus = (
     ambassadorId: string,
     status: "PRESENT" | "ABSENT" | "EXCUSED"
@@ -58,7 +76,12 @@ const EventAttendancePage = () => {
           ? {
             ...a,
             attendanceStatus: status,
-            marks: status === "PRESENT" ? globalPoints : 0,
+            marks:
+              status === "PRESENT"
+                ? globalPoints
+                : status === "EXCUSED"
+                ? excusedPoints
+                : 0,
           }
           : a
       )
@@ -219,13 +242,22 @@ const EventAttendancePage = () => {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="bg-white p-4 rounded-xl border border-neutral-200 flex items-center gap-3">
             <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Points for Attendance:</span>
             <input
               type="number"
               value={globalPoints}
               onChange={(e) => setGlobalPoints(parseInt(e.target.value) || 0)}
+              className="w-16 px-2 py-1 border border-neutral-300 rounded-lg text-center font-bold"
+            />
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-neutral-200 flex items-center gap-3">
+            <span className="text-xs font-bold text-neutral-500 uppercase tracking-widest">Points for Excused:</span>
+            <input
+              type="number"
+              value={excusedPoints}
+              onChange={(e) => setExcusedPoints(parseInt(e.target.value) || 0)}
               className="w-16 px-2 py-1 border border-neutral-300 rounded-lg text-center font-bold"
             />
           </div>

@@ -102,6 +102,18 @@ const ProfilePage = () => {
     setSuccess("");
     setError("");
 
+    // Privilege Escalation Check
+    const titleLower = formData.title.toLowerCase().trim();
+    const isCEOorTechLead = titleLower === "ceo" || titleLower === "tech lead" || titleLower === "chief executive officer";
+    const currentTitleLower = (user?.title || "").toLowerCase().trim();
+    const wasAlreadyCEOorTechLead = currentTitleLower === "ceo" || currentTitleLower === "tech lead" || currentTitleLower === "chief executive officer";
+
+    if (isCEOorTechLead && !wasAlreadyCEOorTechLead) {
+      setError("You do not have permission to change your title to CEO or Tech Lead.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await axiosInstance.patch("/admin/me", {
         firstName: formData.firstName,

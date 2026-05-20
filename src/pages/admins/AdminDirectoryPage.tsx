@@ -129,6 +129,9 @@ const AdminDirectoryPage = () => {
           admin={selectedAdmin}
           isOpen={!!selectedAdmin}
           onClose={() => setSelectedAdmin(null)}
+          onAdminDeleted={(deletedId) => {
+            setAdmins((prev) => prev.filter((adm) => adm._id !== deletedId));
+          }}
         />
       )}
     </>

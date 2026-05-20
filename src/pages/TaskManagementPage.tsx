@@ -17,6 +17,7 @@ import {
   FileText,
   Link as LinkIcon,
   Download,
+  User,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../api/axiosInstance";
@@ -25,9 +26,16 @@ import Input from "../components/Input";
 import { cn } from "../utils/cn";
 import { toast } from "../store/useToastStore";
 import { format } from "date-fns";
+import { useAuthStore } from "../store/useAuthStore";
 
 const TaskManagementPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const titleLower = (user?.title || "").toLowerCase().trim();
+  const isSuperAdmin =
+    titleLower === "tech lead" ||
+    titleLower === "ceo" ||
+    titleLower === "chief executive officer";
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -35,6 +43,7 @@ const TaskManagementPage = () => {
   // Modal & Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ambassadors, setAmbassadors] = useState([]);
+  const [teamAdmins, setTeamAdmins] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -62,6 +71,7 @@ const TaskManagementPage = () => {
       url: string;
       type: "VIDEO" | "PDF" | "LINK";
     }[],
+    assignedAdmin: "",
   });
 
   const fetchTasks = async () => {
@@ -87,9 +97,19 @@ const TaskManagementPage = () => {
     }
   };
 
+  const fetchTeamAdmins = async () => {
+    try {
+      const response = await axiosInstance.get("/admin/list");
+      setTeamAdmins(response.data || []);
+    } catch (error) {
+      console.error("Error fetching administrators:", error);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
     fetchAmbassadors();
+    fetchTeamAdmins();
   }, []);
 
   const handleExportReport = async () => {
@@ -128,10 +148,14 @@ const TaskManagementPage = () => {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       ...formData,
       dueDate: new Date(formData.dueDate).toISOString(),
     };
+
+    if (!payload.assignedAdmin) {
+      delete payload.assignedAdmin;
+    }
 
     try {
       if (editingTaskId) {
@@ -153,6 +177,7 @@ const TaskManagementPage = () => {
         requirements: ["TEXT"],
         whatToDo: [],
         materials: [],
+        assignedAdmin: "",
       });
       fetchTasks();
     } catch (err: any) {
@@ -179,6 +204,7 @@ const TaskManagementPage = () => {
       requirements: task.requirements || ["TEXT"],
       whatToDo: task.whatToDo || [],
       materials: task.materials || [],
+      assignedAdmin: task.assignedAdmin?._id || task.assignedAdmin || "",
     });
     setIsModalOpen(true);
   };
@@ -330,6 +356,7 @@ const TaskManagementPage = () => {
                 requirements: ["TEXT"],
                 whatToDo: [],
                 materials: [],
+                assignedAdmin: "",
               });
               setIsModalOpen(true);
             }}
@@ -480,6 +507,12 @@ const TaskManagementPage = () => {
                       <Users size={12} className="text-blue-400 md:w-[14px] md:h-[14px]" />
                       {task.assignedTo?.length || 0} Assigned
                     </div>
+                    {task.assignedAdmin && (
+                      <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-black text-purple-600 bg-purple-50 px-3 md:px-4 py-1.5 md:py-2 rounded-xl uppercase tracking-widest border border-purple-100">
+                        <User size={12} className="text-purple-400 md:w-[14px] md:h-[14px]" />
+                        Lead: {task.assignedAdmin.firstName} {task.assignedAdmin.lastName}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -868,6 +901,28 @@ const TaskManagementPage = () => {
                     )}
                   </div>
                 </div>
+
+                {isSuperAdmin && (
+                  <div className="space-y-1.5 text-left">
+                    <label className="text-xs font-bold font-heading text-neutral-400 uppercase tracking-wider">
+                      Assigned Administrator (Lead)
+                    </label>
+                    <select
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-heading font-bold"
+                      value={formData.assignedAdmin}
+                      onChange={(e) =>
+                        setFormData({ ...formData, assignedAdmin: e.target.value })
+                      }
+                    >
+                      <option value="">-- Select Lead Administrator --</option>
+                      {teamAdmins.map((adm) => (
+                        <option key={adm._id} value={adm._id}>
+                          {adm.firstName} {adm.lastName} ({adm.title || "Admin"})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="space-y-3">
                     <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider">

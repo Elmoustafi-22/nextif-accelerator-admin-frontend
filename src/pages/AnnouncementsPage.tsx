@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Megaphone,
   Send,
@@ -9,6 +9,11 @@ import {
   PlusCircle,
   Clock,
   ChevronRight,
+  Bold,
+  Italic,
+  List,
+  Code,
+  Link as LinkIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../api/axiosInstance";
@@ -23,6 +28,10 @@ const AnnouncementsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ title: "", body: "", link: "" });
   const [success, setSuccess] = useState(false);
+  
+  // Announcement Rich-formatting states
+  const [editorMode, setEditorMode] = useState<"write" | "preview">("write");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const fetchHistory = async () => {
     try {
@@ -58,6 +67,7 @@ const AnnouncementsPage = () => {
       setTimeout(() => {
         setIsModalOpen(false);
         setFormData({ title: "", body: "", link: "" });
+        setEditorMode("write");
         setSuccess(false);
         fetchHistory();
       }, 1500);
@@ -66,6 +76,109 @@ const AnnouncementsPage = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Helper to insert markdown format at cursor position
+  const insertFormat = (formatType: "bold" | "italic" | "link" | "list" | "code") => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = formData.body;
+    const selectedText = text.substring(start, end);
+
+    let replacement = "";
+    let newCursorPos = start;
+
+    switch (formatType) {
+      case "bold":
+        replacement = `**${selectedText || "bold text"}**`;
+        newCursorPos = start + 2 + (selectedText ? selectedText.length : 9);
+        break;
+      case "italic":
+        replacement = `*${selectedText || "italic text"}*`;
+        newCursorPos = start + 1 + (selectedText ? selectedText.length : 11);
+        break;
+      case "link":
+        replacement = `[${selectedText || "Link Text"}](https://example.com)`;
+        newCursorPos = start + 1 + (selectedText ? selectedText.length : 9);
+        break;
+      case "list":
+        replacement = `\n- ${selectedText || "list item"}`;
+        newCursorPos = start + 3 + (selectedText ? selectedText.length : 9);
+        break;
+      case "code":
+        replacement = `\`${selectedText || "code snippet"}\``;
+        newCursorPos = start + 1 + (selectedText ? selectedText.length : 12);
+        break;
+    }
+
+    const newBody = text.substring(0, start) + replacement + text.substring(end);
+    setFormData({ ...formData, body: newBody });
+
+    // Focus back on textarea and set selection range
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  // Client-side markdown renderer helper for live preview
+  const formatBodyPreview = (text: string) => {
+    if (!text) return "<p class='text-neutral-400 italic'>Nothing to preview yet...</p>";
+
+    // Escape HTML to prevent custom HTML injections in preview
+    let formatted = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    // Bold
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    // Italics
+    formatted = formatted.replace(/\*(.*?)\*/g, "<em>$1</em>");
+    formatted = formatted.replace(/_(.*?)_/g, "<em>$1</em>");
+
+    // Code
+    formatted = formatted.replace(/`(.*?)`/g, "<code class='bg-neutral-100 px-1.5 py-0.5 rounded text-red-600 font-mono text-xs'>$1</code>");
+
+    // Auto-link standalone URLs
+    formatted = formatted.replace(/(?<!href=["'])(https?:\/\/[^\s<()]+)/g, "<a href='$1' class='text-blue-600 underline' target='_blank' rel='noreferrer'>$1</a>");
+
+    // Markdown link
+    formatted = formatted.replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-blue-600 underline' target='_blank' rel='noreferrer'>$1</a>");
+
+    // Lists
+    const lines = formatted.split("\n");
+    let inList = false;
+    const processedLines = lines.map(line => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+        const itemContent = trimmed.substring(2);
+        let prefix = "";
+        if (!inList) {
+          inList = true;
+          prefix = "<ul class='list-disc pl-5 my-2 space-y-1 text-neutral-600'>";
+        }
+        return `${prefix}<li>${itemContent}</li>`;
+      } else {
+        let suffix = "";
+        if (inList) {
+          inList = false;
+          suffix = "</ul>";
+        }
+        return suffix + line;
+      }
+    });
+    if (inList) {
+      processedLines.push("</ul>");
+    }
+
+    formatted = processedLines.join("\n");
+    formatted = formatted.replace(/\n/g, "<br />");
+    return formatted;
   };
 
   return (
@@ -245,21 +358,106 @@ const AnnouncementsPage = () => {
                 />
 
                 <div className="space-y-3">
-                  <label className="text-sm font-heading font-bold text-neutral-900 flex items-center gap-2">
-                    Announcement Body
-                    <span className="text-[10px] bg-neutral-100 px-2 py-0.5 rounded text-neutral-400 font-heading font-bold uppercase tracking-tighter italic">
-                      Required
-                    </span>
-                  </label>
-                  <textarea
-                    className="w-full bg-neutral-50 border border-neutral-100 rounded-3xl p-5 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all min-h-[120px] font-medium placeholder:text-neutral-300 leading-relaxed"
-                    placeholder="Provide details about the meeting or update..."
-                    required
-                    value={formData.body}
-                    onChange={(e) =>
-                      setFormData({ ...formData, body: e.target.value })
-                    }
-                  />
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-heading font-bold text-neutral-900 flex items-center gap-2">
+                      Announcement Body
+                      <span className="text-[10px] bg-neutral-100 px-2 py-0.5 rounded text-neutral-400 font-heading font-bold uppercase tracking-tighter italic">
+                        Required
+                      </span>
+                    </label>
+
+                    {/* Tab Switcher */}
+                    <div className="flex bg-neutral-100 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setEditorMode("write")}
+                        className={cn(
+                          "px-3 py-1 text-xs font-bold rounded-lg transition-all",
+                          editorMode === "write"
+                            ? "bg-white text-blue-600 shadow-sm"
+                            : "text-neutral-500 hover:text-neutral-900"
+                        )}
+                      >
+                        Write
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditorMode("preview")}
+                        className={cn(
+                          "px-3 py-1 text-xs font-bold rounded-lg transition-all",
+                          editorMode === "preview"
+                            ? "bg-white text-blue-600 shadow-sm"
+                            : "text-neutral-500 hover:text-neutral-900"
+                        )}
+                      >
+                        Preview
+                      </button>
+                    </div>
+                  </div>
+
+                  {editorMode === "write" ? (
+                    <div className="space-y-2">
+                      {/* Formatting Bar */}
+                      <div className="flex items-center gap-1 bg-neutral-50 border border-neutral-100 p-1.5 rounded-2xl">
+                        <button
+                          type="button"
+                          onClick={() => insertFormat("bold")}
+                          title="Bold (**bold**)"
+                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                        >
+                          <Bold size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormat("italic")}
+                          title="Italic (*italic*)"
+                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                        >
+                          <Italic size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormat("link")}
+                          title="Link ([text](url))"
+                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                        >
+                          <LinkIcon size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormat("list")}
+                          title="Bullet List (- item)"
+                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                        >
+                          <List size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => insertFormat("code")}
+                          title="Inline Code (`code`)"
+                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                        >
+                          <Code size={16} />
+                        </button>
+                      </div>
+
+                      <textarea
+                        ref={textareaRef}
+                        className="w-full bg-neutral-50 border border-neutral-100 rounded-3xl p-5 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all min-h-[150px] font-medium placeholder:text-neutral-300 leading-relaxed"
+                        placeholder="Provide details about the meeting or update... Use formatting buttons above for rich styling."
+                        required
+                        value={formData.body}
+                        onChange={(e) =>
+                          setFormData({ ...formData, body: e.target.value })
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <div 
+                      dangerouslySetInnerHTML={{ __html: formatBodyPreview(formData.body) }}
+                      className="w-full bg-neutral-50/50 border border-neutral-100 rounded-3xl p-5 text-sm min-h-[200px] leading-relaxed text-neutral-700 overflow-y-auto max-h-[300px]"
+                    />
+                  )}
                 </div>
 
                 <Input
