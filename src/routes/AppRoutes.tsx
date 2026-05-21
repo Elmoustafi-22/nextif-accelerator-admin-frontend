@@ -21,6 +21,7 @@ import AdminDirectoryPage from "../pages/admins/AdminDirectoryPage";
 import LeaderboardPage from "../pages/LeaderboardPage";
 import RecordingsPage from "../pages/RecordingsPage";
 import PaymentsPage from "../pages/PaymentsPage";
+import CapstoneManagementPage from "../pages/CapstoneManagementPage";
 import Layout from "../components/Layout";
 
 // Placeholder components
@@ -85,6 +86,7 @@ const AppRoutes = () => {
           <Route path="/attendance" element={<AttendanceManagementPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/recordings" element={<RecordingsPage />} />
+          <Route path="/capstone" element={<CapstoneManagementPage />} />
         </Route>
       </Route>
 

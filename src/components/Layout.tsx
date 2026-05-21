@@ -15,6 +15,7 @@ import {
   Award,
   Video,
   CreditCard,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "../utils/cn";
 import { useAuthStore } from "../store/useAuthStore";
@@ -95,6 +96,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { name: "Manage Fellows", href: "/fellows", icon: UserIcon },
     { name: "Bulk Onboarding", href: "/fellows/bulk", icon: Upload },
     { name: "Manage Tasks", href: "/tasks", icon: CheckSquare },
+    { name: "Capstone", href: "/capstone", icon: BookOpen },
     ...(isSuperAdmin ? [{ name: "Payments", href: "/payments", icon: CreditCard }] : []),
     { name: "Complaints", href: "/complaints", icon: PlusCircle },
     { name: "Team", href: "/team", icon: Users }, // Admin Directory
