@@ -136,14 +136,13 @@ const CapstoneManagementPage = () => {
     }
 
     const headers = [
-      "Team Name", "Stage", "Founder", "Members", "Project Title", "Problem Summary", "Document Link",
+      "Team Name", "Stage", "Founder", "Members", "Project Title", "Problem Summary", "Logo URL", "Proposal Doc", "Pitch Deck",
       "Relevance", "Innovation", "Clarity", "Feasibility", "Presentation", "Total Score", "Status", "Shortlisted", "Remarks"
     ];
 
     const rows = submissions.map(sub => {
       const founderName = sub.team.founder ? `${sub.team.founder.firstName} ${sub.team.founder.lastName}` : "N/A";
       const otherMembers = (sub.team.members || []).filter(m => m.email !== sub.team.founder?.email).map(m => `${m.firstName} ${m.lastName}`).join(" | ");
-      const docLink = sub.stage === "PROPOSAL" ? sub.content?.proposalDocUrl : sub.content?.pitchDeckUrl;
 
       return [
         `"${sub.team?.name || "Unknown"}"`,
@@ -152,7 +151,9 @@ const CapstoneManagementPage = () => {
         `"${otherMembers || "none"}"`,
         `"${sub.content?.projectTitle || "N/A"}"`,
         `"${(sub.content?.problemStatement || "N/A").replace(/"/g, '""')}"`,
-        `"${docLink || "N/A"}"`,
+        `"${sub.content?.logoUrl || "N/A"}"`,
+        `"${sub.content?.proposalDocUrl || "N/A"}"`,
+        `"${sub.content?.pitchDeckUrl || "N/A"}"`,
         sub.score?.relevance || 0,
         sub.score?.innovation || 0,
         sub.score?.clarity || 0,
