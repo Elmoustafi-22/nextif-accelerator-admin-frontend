@@ -25,9 +25,13 @@ const TaskSubmissionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
+  const [adjustingPointsId, setAdjustingPointsId] = useState<string | null>(null);
   const [remarks, setRemarks] = useState<{ [key: string]: string }>({});
   const [selectedGrades, setSelectedGrades] = useState<{ [key: string]: number }>({});
+  const [adjustmentReasons, setAdjustmentReasons] = useState<{ [key: string]: string }>({});
+  const [adjustedPoints, setAdjustedPoints] = useState<{ [key: string]: number }>({});
   const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"UNVERIFIED" | "VERIFIED" | "REDO" | "REJECTED">("UNVERIFIED");
 
   useEffect(() => {
@@ -92,6 +96,52 @@ const TaskSubmissionsPage = () => {
       toast.error("Failed to update status");
     } finally {
       setVerifyingId(null);
+    }
+  };
+
+  const handleAdjustPoints = async (submissionId: string) => {
+    if (!adjustedPoints[submissionId] && adjustedPoints[submissionId] !== 0) {
+      toast.warning("Please enter new points value.");
+      return;
+    }
+    if (!adjustmentReasons[submissionId]?.trim()) {
+      toast.warning("Please provide a reason for the adjustment.");
+      return;
+    }
+
+    try {
+      setAdjustingPointsId(submissionId);
+      const res = await axiosInstance.patch(
+        `/tasks/submissions/${submissionId}/adjust-points`,
+        {
+          newPoints: adjustedPoints[submissionId],
+          reason: adjustmentReasons[submissionId],
+        }
+      );
+
+      setSubmissions((prev) =>
+        prev.map((s) => (s._id === submissionId ? res.data.submission : s))
+      );
+
+      setAdjustmentReasons((prev) => {
+        const next = { ...prev };
+        delete next[submissionId];
+        return next;
+      });
+      setAdjustedPoints((prev) => {
+        const next = { ...prev };
+        delete next[submissionId];
+        return next;
+      });
+
+      setShowAdjustmentModal(true);
+      setTimeout(() => setShowAdjustmentModal(false), 2000);
+      toast.success("Points adjusted and fellow notified!");
+    } catch (err: any) {
+      console.error("Point adjustment failed:", err);
+      toast.error(err.response?.data?.message || "Failed to adjust points");
+    } finally {
+      setAdjustingPointsId(null);
     }
   };
 
@@ -347,6 +397,52 @@ const TaskSubmissionsPage = () => {
                       </div>
                     </div>
 
+                    {sub.status === "COMPLETED" && (
+                      <div className="p-6 md:p-8 bg-blue-50/30 rounded-[2rem] border border-blue-100/50 space-y-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                            <AlertCircle size={18} />
+                          </div>
+                          <div>
+                            <h4 className="font-black text-neutral-900 text-sm uppercase tracking-wider">Adjustment Hub</h4>
+                            <p className="text-[10px] text-neutral-400 font-black uppercase tracking-widest">Fine-tune awarded points</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] ml-1">New Points Value</label>
+                              <input 
+                                type="number"
+                                className="w-full text-sm font-black p-4 rounded-xl bg-white border border-neutral-100 focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600/20 outline-none transition-all"
+                                placeholder="Enter points..."
+                                value={adjustedPoints[sub._id] ?? sub.pointsAwarded ?? sub.grade ?? ""}
+                                onChange={(e) => setAdjustedPoints({ ...adjustedPoints, [sub._id]: parseInt(e.target.value) || 0 })}
+                              />
+                           </div>
+                           <div className="space-y-3">
+                              <label className="text-[10px] font-black text-neutral-400 uppercase tracking-[0.2em] ml-1">Adjustment Reason</label>
+                              <input 
+                                type="text"
+                                className="w-full text-sm font-medium p-4 rounded-xl bg-white border border-neutral-100 focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600/20 outline-none transition-all"
+                                placeholder="Why are you adjusting this?"
+                                value={adjustmentReasons[sub._id] || ""}
+                                onChange={(e) => setAdjustmentReasons({ ...adjustmentReasons, [sub._id]: e.target.value })}
+                              />
+                           </div>
+                        </div>
+
+                        <Button
+                          className="w-full bg-blue-600 hover:bg-blue-700 h-12 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-600/20"
+                          onClick={() => handleAdjustPoints(sub._id)}
+                          isLoading={adjustingPointsId === sub._id}
+                          leftIcon={<RefreshCcw size={18} />}
+                        >
+                          Execute Adjustment
+                        </Button>
+                      </div>
+                    )}
+
                     <div className="flex flex-col sm:flex-row gap-3">
                       <Button
                         className="flex-1 bg-green-600 hover:bg-green-700 border-none h-12 md:h-14 rounded-xl md:rounded-2xl font-black font-heading shadow-xl shadow-green-600/20"
@@ -401,6 +497,17 @@ const TaskSubmissionsPage = () => {
               <CheckCircle2 size={64} className="mx-auto mb-4 text-green-500" />
               <h2 className="text-3xl font-bold text-neutral-900 mb-2">Verified!</h2>
               <p className="text-neutral-600">Fellow has been notified and points awarded.</p>
+            </motion.div>
+          </div>
+        )}
+        {showAdjustmentModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full text-center">
+              <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <RefreshCcw size={40} className="text-blue-600 animate-spin" />
+              </div>
+              <h2 className="text-3xl font-bold text-neutral-900 mb-2">Points Adjusted!</h2>
+              <p className="text-neutral-600">The fellow's total score has been updated and they have been notified of the change.</p>
             </motion.div>
           </div>
         )}
