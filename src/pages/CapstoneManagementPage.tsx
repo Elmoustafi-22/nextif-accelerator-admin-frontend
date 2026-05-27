@@ -66,6 +66,49 @@ const CapstoneManagementPage = () => {
     remarks: ""
   });
 
+  const [proposalDeadline, setProposalDeadline] = useState("2026-06-03T23:59");
+  const [pitchDeckDeadline, setPitchDeckDeadline] = useState("2026-06-11T23:59");
+  const [isSavingProposal, setIsSavingProposal] = useState(false);
+  const [isSavingPitchDeck, setIsSavingPitchDeck] = useState(false);
+
+  const toDateTimeLocalString = (dateInput: any) => {
+    if (!dateInput) return "";
+    const d = new Date(dateInput);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  const fetchDeadlines = async () => {
+    try {
+      const res = await axiosInstance.get("/capstone/deadlines");
+      const list = res.data.deadlines || [];
+      const proposal = list.find((d: any) => d.stage === "PROPOSAL");
+      const pitch = list.find((d: any) => d.stage === "PITCH_DECK");
+      if (proposal) setProposalDeadline(toDateTimeLocalString(proposal.deadline));
+      if (pitch) setPitchDeckDeadline(toDateTimeLocalString(pitch.deadline));
+    } catch (err) {
+      console.error("Failed to fetch deadlines:", err);
+    }
+  };
+
+  const handleUpdateDeadline = async (stage: "PROPOSAL" | "PITCH_DECK", deadlineStr: string) => {
+    if (stage === "PROPOSAL") setIsSavingProposal(true);
+    else setIsSavingPitchDeck(true);
+
+    try {
+      await axiosInstance.post("/capstone/deadlines", {
+        stage,
+        deadline: new Date(deadlineStr).toISOString()
+      });
+      addToast(`${stage === "PROPOSAL" ? "Proposal" : "Pitch Deck"} deadline updated successfully!`, "success");
+    } catch (error: any) {
+      addToast(error.response?.data?.message || "Failed to update deadline", "error");
+    } finally {
+      if (stage === "PROPOSAL") setIsSavingProposal(false);
+      else setIsSavingPitchDeck(false);
+    }
+  };
+
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
@@ -73,7 +116,8 @@ const CapstoneManagementPage = () => {
     try {
       const [teamsRes, subsRes] = await Promise.all([
         axiosInstance.get("/capstone/teams"),
-        axiosInstance.get("/capstone/submissions")
+        axiosInstance.get("/capstone/submissions"),
+        fetchDeadlines()
       ]);
       setTeams(teamsRes.data.teams);
       setSubmissions(subsRes.data.submissions);
@@ -216,6 +260,53 @@ const CapstoneManagementPage = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Capstone Deadlines Settings */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+        <div className="flex items-center gap-2">
+          <Clock className="text-indigo-600" size={20} />
+          <h2 className="text-lg font-black text-slate-900">Capstone Deadlines Settings</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Stage I: Proposal Deadline</label>
+            <div className="flex gap-2">
+              <input
+                type="datetime-local"
+                value={proposalDeadline}
+                onChange={(e) => setProposalDeadline(e.target.value)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 text-sm font-medium"
+              />
+              <button
+                onClick={() => handleUpdateDeadline("PROPOSAL", proposalDeadline)}
+                disabled={isSavingProposal}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center min-w-[80px]"
+              >
+                {isSavingProposal ? <Loader2 size={16} className="animate-spin" /> : "Save"}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Stage II: Pitch Deck Deadline</label>
+            <div className="flex gap-2">
+              <input
+                type="datetime-local"
+                value={pitchDeckDeadline}
+                onChange={(e) => setPitchDeckDeadline(e.target.value)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 text-sm font-medium"
+              />
+              <button
+                onClick={() => handleUpdateDeadline("PITCH_DECK", pitchDeckDeadline)}
+                disabled={isSavingPitchDeck}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center min-w-[80px]"
+              >
+                {isSavingPitchDeck ? <Loader2 size={16} className="animate-spin" /> : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Tabs & Search */}
