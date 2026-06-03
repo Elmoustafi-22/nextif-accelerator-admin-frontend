@@ -70,6 +70,9 @@ const CapstoneManagementPage = () => {
   const [pitchDeckDeadline, setPitchDeckDeadline] = useState("2026-06-11T23:59");
   const [isSavingProposal, setIsSavingProposal] = useState(false);
   const [isSavingPitchDeck, setIsSavingPitchDeck] = useState(false);
+  
+  const [maxGroupMembers, setMaxGroupMembers] = useState(5);
+  const [isSavingGroupSize, setIsSavingGroupSize] = useState(false);
 
   const toDateTimeLocalString = (dateInput: any) => {
     if (!dateInput) return "";
@@ -88,6 +91,36 @@ const CapstoneManagementPage = () => {
       if (pitch) setPitchDeckDeadline(toDateTimeLocalString(pitch.deadline));
     } catch (err) {
       console.error("Failed to fetch deadlines:", err);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const res = await axiosInstance.get("/settings");
+      if (res.data.capstoneGroupMaxMembers) {
+        setMaxGroupMembers(res.data.capstoneGroupMaxMembers);
+      }
+    } catch (err) {
+      console.error("Failed to fetch settings:", err);
+    }
+  };
+
+  const handleUpdateGroupSize = async () => {
+    if (maxGroupMembers < 1 || maxGroupMembers > 20) {
+      addToast("Group size must be between 1 and 20", "error");
+      return;
+    }
+
+    setIsSavingGroupSize(true);
+    try {
+      await axiosInstance.put("/settings", {
+        capstoneGroupMaxMembers: maxGroupMembers
+      });
+      addToast("Capstone group size updated successfully!", "success");
+    } catch (error: any) {
+      addToast(error.response?.data?.message || "Failed to update group size", "error");
+    } finally {
+      setIsSavingGroupSize(false);
     }
   };
 
@@ -117,7 +150,8 @@ const CapstoneManagementPage = () => {
       const [teamsRes, subsRes] = await Promise.all([
         axiosInstance.get("/capstone/teams"),
         axiosInstance.get("/capstone/submissions"),
-        fetchDeadlines()
+        fetchDeadlines(),
+        fetchSettings()
       ]);
       setTeams(teamsRes.data.teams);
       setSubmissions(subsRes.data.submissions);
@@ -305,6 +339,38 @@ const CapstoneManagementPage = () => {
                 {isSavingPitchDeck ? <Loader2 size={16} className="animate-spin" /> : "Save"}
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Capstone Group Size Settings */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+        <div className="flex items-center gap-2">
+          <Users className="text-indigo-600" size={20} />
+          <h2 className="text-lg font-black text-slate-900">Capstone Group Settings</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Max Members Per Group</label>
+            <p className="text-xs text-slate-500 mb-3">Set the maximum number of people allowed in each capstone group</p>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={maxGroupMembers}
+                onChange={(e) => setMaxGroupMembers(parseInt(e.target.value) || 5)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 text-sm font-medium"
+              />
+              <button
+                onClick={handleUpdateGroupSize}
+                disabled={isSavingGroupSize}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center min-w-[80px]"
+              >
+                {isSavingGroupSize ? <Loader2 size={16} className="animate-spin" /> : "Save"}
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mt-2">Current setting: <span className="font-bold text-slate-700">{maxGroupMembers} members</span></p>
           </div>
         </div>
       </div>
