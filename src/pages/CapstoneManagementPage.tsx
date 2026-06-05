@@ -362,7 +362,7 @@ const CapstoneManagementPage = () => {
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
               Stage I: Proposal Deadline
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="datetime-local"
                 value={proposalDeadline}
@@ -382,7 +382,7 @@ const CapstoneManagementPage = () => {
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
               Stage II: Pitch Deck Deadline
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="datetime-local"
                 value={pitchDeckDeadline}
@@ -415,7 +415,7 @@ const CapstoneManagementPage = () => {
             <p className="text-xs text-slate-500 mb-3">
               Set the maximum number of people allowed in each capstone group
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="number"
                 min="1"
@@ -475,13 +475,13 @@ const CapstoneManagementPage = () => {
 
             {/* Stage filter */}
             {activeTab === "SUBMISSIONS" && (
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
                 {(["ALL", "PROPOSAL", "PITCH_DECK"] as const).map((f) => (
                   <button
                     key={f}
                     onClick={() => setStageFilter(f)}
                     className={cn(
-                      "px-3 py-2 rounded-lg text-[11px] font-black transition-all whitespace-nowrap",
+                      "flex-1 sm:flex-initial px-3 py-2 rounded-lg text-[11px] font-black transition-all whitespace-nowrap",
                       stageFilter === f
                         ? f === "PROPOSAL"
                           ? "bg-blue-600 text-white shadow-sm"
@@ -502,14 +502,14 @@ const CapstoneManagementPage = () => {
               <button
                 onClick={() => setShowOnlyShortlisted(!showOnlyShortlisted)}
                 className={cn(
-                  "p-3 rounded-2xl border transition-all flex items-center gap-2 font-black font-heading text-xs",
+                  "p-3 rounded-2xl border transition-all flex items-center justify-center gap-2 font-black font-heading text-xs w-full sm:w-auto shrink-0",
                   showOnlyShortlisted
                     ? "bg-amber-50 border-amber-200 text-amber-700 shadow-sm shadow-amber-100"
                     : "bg-white border-slate-100 text-slate-500 hover:bg-slate-50"
                 )}
               >
                 <Award size={18} className={showOnlyShortlisted ? "text-amber-500" : "text-slate-400"} />
-                <span className="hidden sm:inline">Shortlisted Only</span>
+                <span>Shortlisted Only</span>
               </button>
             )}
           </div>
@@ -719,7 +719,7 @@ const CapstoneManagementPage = () => {
                   );
                 })
               ) : (
-                <div className="col-span-full py-20 text-center bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
+                <div className="col-span-full py-20 text-center bg-slate-50 rounded-3xl sm:rounded-[2.5rem] border-2 border-dashed border-slate-200">
                   <FileText size={48} className="mx-auto text-slate-300 mb-4" />
                   <h3 className="text-lg font-black text-slate-900">No submissions found</h3>
                   <p className="text-slate-500 font-medium mt-1">
@@ -731,7 +731,7 @@ const CapstoneManagementPage = () => {
           </div>
         ) : (
           /* Teams Table */
-          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-3xl sm:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden mx-4 sm:mx-0">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
@@ -824,21 +824,21 @@ const CapstoneManagementPage = () => {
               initial={{ opacity: 0, scale: 0.95, y: 24 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 24 }}
-              className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col"
+              className="relative bg-white rounded-3xl sm:rounded-[2.5rem] shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col"
             >
               {/* ── Modal Header ── */}
               <div
                 className={cn(
-                  "p-7 pb-5 border-b border-slate-100 flex justify-between items-start shrink-0",
+                  "p-5 sm:p-7 pb-5 border-b border-slate-100 flex justify-between items-start shrink-0",
                   viewingSubmission.stage === "PROPOSAL"
                     ? "bg-gradient-to-r from-blue-50 to-indigo-50"
                     : "bg-gradient-to-r from-purple-50 to-fuchsia-50"
                 )}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 flex-1">
                   {/* Logo or Stage Icon */}
                   {getTeamLogoUrl(viewingSubmission) ? (
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white shadow-lg shrink-0 bg-white">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl overflow-hidden border-2 border-white shadow-lg shrink-0 bg-white">
                       <img
                         src={getTeamLogoUrl(viewingSubmission)!}
                         alt="Project logo"
@@ -852,17 +852,18 @@ const CapstoneManagementPage = () => {
                   ) : (
                     <div
                       className={cn(
-                        "w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0",
+                        "w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0",
                         viewingSubmission.stage === "PROPOSAL"
                           ? "bg-blue-600 shadow-blue-200"
                           : "bg-purple-600 shadow-purple-200"
                       )}
                     >
-                      <Rocket size={28} />
+                      <Rocket size={24} className="sm:hidden" />
+                      <Rocket size={28} className="hidden sm:block" />
                     </div>
                   )}
 
-                  <div>
+                  <div className="space-y-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span
                         className={cn(
@@ -881,31 +882,32 @@ const CapstoneManagementPage = () => {
                         <span
                           className={cn(
                             "px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest text-white",
-                            viewingSubmission.score.passed ? "bg-green-600" : "bg-rose-500"
+                            viewingSubmission.score.passed ? "bg-green-600" : "bg-rose-50"
                           )}
                         >
                           {viewingSubmission.score.passed ? "✓ Passed" : "✗ Failed"} · {viewingSubmission.score.total}%
                         </span>
                       )}
                     </div>
-                    <h2 className="text-xl font-black font-heading text-slate-900 leading-tight">
+                    <h2 className="text-lg sm:text-xl font-black font-heading text-slate-900 leading-tight">
                       {viewingSubmission.content?.projectTitle || "Untitled Project"}
                     </h2>
-                    <p className="text-sm text-slate-500 font-medium">{viewingSubmission.team.name}</p>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium">{viewingSubmission.team.name}</p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setViewingSubmission(null)}
-                  className="p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-xl transition-all shadow-sm shrink-0"
+                  className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-xl transition-all shadow-sm shrink-0 ml-2"
                 >
-                  <XCircle size={28} />
+                  <XCircle size={24} className="sm:hidden" />
+                  <XCircle size={28} className="hidden sm:block" />
                 </button>
               </div>
 
               {/* ── Modal Body ── */}
               <div className="flex-1 overflow-y-auto">
-                <div className="p-7 space-y-8">
+                <div className="p-5 sm:p-7 space-y-6 sm:space-y-8">
 
                   {/* ── Team Members ── */}
                   <div>
@@ -1031,13 +1033,13 @@ const CapstoneManagementPage = () => {
                       <ExternalLink size={13} className="text-indigo-400" />
                       <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Submitted Documents</h3>
                     </div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       {viewingSubmission.content?.proposalDocUrl && (
                         <a
                           href={viewingSubmission.content.proposalDocUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-black hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-black hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
                         >
                           <FileText size={15} /> View Proposal Document
                         </a>
@@ -1047,7 +1049,7 @@ const CapstoneManagementPage = () => {
                           href={viewingSubmission.content.pitchDeckUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-black hover:bg-purple-700 transition-all shadow-md shadow-purple-100"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-black hover:bg-purple-700 transition-all shadow-md shadow-purple-100"
                         >
                           <Rocket size={15} /> View Pitch Deck
                         </a>
@@ -1109,7 +1111,7 @@ const CapstoneManagementPage = () => {
                       {viewingSubmission.score ? "Update Evaluation" : "Submit Evaluation"}
                     </h3>
                     <form onSubmit={handleGrade} className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
                           { label: "Islamic Finance Relevance", max: 25, key: "relevance" },
                           { label: "Innovation Component", max: 25, key: "innovation" },
