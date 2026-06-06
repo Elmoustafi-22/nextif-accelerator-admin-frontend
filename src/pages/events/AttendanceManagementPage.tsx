@@ -284,24 +284,24 @@ const AttendanceManagementPage = () => {
                 <button
                   onClick={() => toggleEvent(event._id)}
                   className={cn(
-                    "w-full px-10 py-8 flex items-center justify-between transition-colors",
+                    "w-full px-4 sm:px-10 py-5 sm:py-8 flex items-center justify-between transition-colors",
                     expandedEventId === event._id ? "bg-indigo-50/30" : "hover:bg-neutral-50/50"
                   )}
                 >
-                  <div className="flex items-center gap-8">
+                  <div className="flex items-center gap-4 sm:gap-8 min-w-0">
                     <div className={cn(
-                      "w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-white shrink-0 shadow-lg transition-all",
+                      "w-12 h-12 sm:w-16 sm:h-16 rounded-[1.5rem] flex items-center justify-center text-white shrink-0 shadow-lg transition-all",
                       expandedEventId === event._id ? "bg-indigo-600 scale-110" : "bg-neutral-900"
                     )}>
                       <span className="font-black text-[10px] uppercase tracking-widest">
                         {event.type.substring(0, 3)}
                       </span>
                     </div>
-                    <div className="text-left">
-                      <h3 className="text-2xl font-black font-heading text-neutral-900 tracking-tight leading-none mb-2">
+                    <div className="text-left min-w-0">
+                      <h3 className="text-lg sm:text-2xl font-black font-heading text-neutral-900 tracking-tight leading-none mb-1 sm:mb-2 truncate">
                         {event.title}
                       </h3>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3 flex-wrap">
                         <p className="text-[10px] text-neutral-400 font-black uppercase tracking-widest">
                           {new Date(event.date).toLocaleDateString()}
                         </p>
@@ -313,19 +313,19 @@ const AttendanceManagementPage = () => {
                     </div>
                   </div>
                   <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                    "w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all shrink-0 ml-2",
                     expandedEventId === event._id ? "bg-indigo-600 text-white" : "bg-neutral-50 text-neutral-400"
                   )}>
                     {expandedEventId === event._id ? (
-                      <ChevronUpIcon className="w-6 h-6" />
+                      <ChevronUpIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     ) : (
-                      <ChevronDownIcon className="w-6 h-6" />
+                      <ChevronDownIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     )}
                   </div>
                 </button>
 
                 {expandedEventId === event._id && (
-                  <div className="p-10 space-y-10 animate-in slide-in-from-top-4 duration-500">
+                  <div className="p-4 sm:p-10 space-y-6 sm:space-y-10 animate-in slide-in-from-top-4 duration-500">
                     {loadingAttendees ? (
                       <div className="text-center py-20 bg-neutral-50 rounded-[2rem]">
                         <div className="w-10 h-10 border-4 border-indigo-600/10 border-t-indigo-600 rounded-full animate-spin mx-auto shadow-sm"></div>
@@ -334,9 +334,11 @@ const AttendanceManagementPage = () => {
                         </p>
                       </div>
                     ) : (
-                      <div className="space-y-8">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                          <div className="flex items-center gap-8">
+                      <div className="space-y-6 sm:space-y-8">
+                        {/* Stats + Action bar */}
+                        <div className="flex flex-col gap-4">
+                          {/* Stats row */}
+                          <div className="flex flex-wrap items-center gap-4 sm:gap-8">
                             <div className="flex items-center gap-3">
                               <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                               <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">
@@ -356,46 +358,132 @@ const AttendanceManagementPage = () => {
                               </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-3">
-                              <input 
-                                type="file" 
-                                accept=".csv" 
-                                id={`csv-upload-${event._id}`} 
-                                className="hidden" 
-                                onChange={handleCSVUpload} 
-                              />
-                              <label 
-                                htmlFor={`csv-upload-${event._id}`} 
-                                className="px-5 py-4 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100 font-bold text-sm cursor-pointer hover:bg-indigo-100 transition-colors inline-flex items-center"
-                              >
-                                Upload CSV
-                              </label>
-                              <button 
-                                onClick={() => downloadCSV(event.title)}
-                                className="px-5 py-4 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 font-bold text-sm hover:bg-emerald-100 transition-colors inline-flex items-center"
-                              >
-                                Download CSV
-                              </button>
-                            </div>
+                          {/* Action buttons row */}
+                          <div className="flex flex-wrap items-center gap-3">
+                            <input 
+                              type="file" 
+                              accept=".csv" 
+                              id={`csv-upload-${event._id}`} 
+                              className="hidden" 
+                              onChange={handleCSVUpload} 
+                            />
+                            <label 
+                              htmlFor={`csv-upload-${event._id}`} 
+                              className="px-4 py-3 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100 font-bold text-xs sm:text-sm cursor-pointer hover:bg-indigo-100 transition-colors inline-flex items-center"
+                            >
+                              Upload CSV
+                            </label>
+                            <button 
+                              onClick={() => downloadCSV(event.title)}
+                              className="px-4 py-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100 font-bold text-xs sm:text-sm hover:bg-emerald-100 transition-colors inline-flex items-center"
+                            >
+                              Download CSV
+                            </button>
                             <Button 
                               onClick={() => handleSave(event._id)} 
                               isLoading={saving}
-                              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-8 py-4 shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
+                              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl px-5 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm shadow-lg shadow-indigo-600/20 active:scale-95 transition-all"
                             >
                               Save Briefing Log
                             </Button>
                             <Button 
                               onClick={() => handleResendNotifications(event._id)} 
                               isLoading={resending === event._id}
-                              className="bg-amber-500 hover:bg-amber-600 text-white rounded-2xl px-8 py-4 shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+                              className="bg-amber-500 hover:bg-amber-600 text-white rounded-2xl px-5 sm:px-8 py-3 sm:py-4 text-xs sm:text-sm shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
                             >
                               Resend Invites
                             </Button>
                           </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-[2rem] border border-neutral-100 bg-white">
+                        {/* Mobile: card layout | Desktop: table layout */}
+                        <div className="space-y-3 md:hidden">
+                          {attendees.map((a) => (
+                            <div
+                              key={a._id}
+                              className={cn(
+                                "rounded-2xl border p-4 transition-all",
+                                a.attendanceStatus === "PRESENT"
+                                  ? "bg-emerald-50/40 border-emerald-100"
+                                  : a.attendanceStatus === "ABSENT"
+                                  ? "bg-rose-50/40 border-rose-100"
+                                  : a.attendanceStatus === "EXCUSED"
+                                  ? "bg-amber-50/40 border-amber-100"
+                                  : "bg-white border-neutral-100"
+                              )}
+                            >
+                              {/* Name + email */}
+                              <div className="mb-3">
+                                <div className="font-black text-neutral-900 text-base tracking-tight leading-none mb-0.5">
+                                  {a.firstName} {a.lastName}
+                                </div>
+                                <div className="text-[10px] font-black text-neutral-400 uppercase tracking-widest truncate">{a.email}</div>
+                              </div>
+                              {/* Actions row */}
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => updateLocalStatus(a._id, "PRESENT")}
+                                    title="Mark Present"
+                                    className={cn(
+                                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                                      a.attendanceStatus === "PRESENT"
+                                        ? "bg-emerald-100 text-emerald-600 shadow-inner"
+                                        : "bg-neutral-100 text-neutral-300 hover:bg-emerald-50 hover:text-emerald-500"
+                                    )}
+                                  >
+                                    {a.attendanceStatus === "PRESENT" ? (
+                                      <CheckCircleSolid className="w-6 h-6" />
+                                    ) : (
+                                      <CheckCircleIcon className="w-6 h-6" />
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => updateLocalStatus(a._id, "ABSENT")}
+                                    title="Mark Absent"
+                                    className={cn(
+                                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                                      a.attendanceStatus === "ABSENT"
+                                        ? "bg-rose-100 text-rose-600 shadow-inner"
+                                        : "bg-neutral-100 text-neutral-300 hover:bg-rose-50 hover:text-rose-500"
+                                    )}
+                                  >
+                                    {a.attendanceStatus === "ABSENT" ? (
+                                      <XCircleSolid className="w-6 h-6" />
+                                    ) : (
+                                      <XCircleIcon className="w-6 h-6" />
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={() => updateLocalStatus(a._id, "EXCUSED")}
+                                    className={cn(
+                                      "px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all",
+                                      a.attendanceStatus === "EXCUSED"
+                                        ? "bg-amber-100 border-amber-200 text-amber-700 shadow-inner"
+                                        : "bg-neutral-100 border-transparent text-neutral-400 hover:border-amber-200 hover:text-amber-600"
+                                    )}
+                                  >
+                                    Excused
+                                  </button>
+                                </div>
+                                {/* XP input */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">XP</span>
+                                  <input
+                                    type="number"
+                                    value={a.marks}
+                                    onChange={(e) => updateLocalMarks(a._id, parseInt(e.target.value) || 0)}
+                                    className="w-16 px-2 py-2 bg-white border border-neutral-200 rounded-lg text-center font-black text-sm focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
+                                    min="0"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Desktop table (hidden on mobile) */}
+                        <div className="hidden md:block overflow-hidden rounded-[2rem] border border-neutral-100 bg-white">
                           <table className="w-full text-left">
                             <thead className="bg-neutral-50/50">
                               <tr>
