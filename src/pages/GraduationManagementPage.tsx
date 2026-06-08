@@ -37,6 +37,18 @@ interface FellowRecord {
     graduationDate?: string;
   };
   createdAt: string;
+  taskPoints?: number;
+  attendancePoints?: number;
+  totalPoints?: number;
+  rank?: number;
+}
+
+interface LeaderboardEntry {
+  id: string;
+  taskPoints: number;
+  attendancePoints: number;
+  totalPoints: number;
+  rank: number;
 }
 
 const GraduationManagementPage = () => {
@@ -64,6 +76,11 @@ const GraduationManagementPage = () => {
   const [emailBody, setEmailBody] = useState(
     `We are incredibly proud of your dedication and hard work throughout the NextIF Cohort 002 program.\n\nYou have officially graduated, and this milestone is a testament to your commitment to excellence in Islamic Finance.\n\nMay Allah bless your journey ahead and may this achievement open doors to remarkable opportunities in your career.\n\nWarm regards,\nThe NextIF Team`
   );
+  const [rankingMessages, setRankingMessages] = useState({
+    first: "Your outstanding performance placed you at the very top of this cohort. Congratulations on earning the Gold Medal as the highest ranked fellow.",
+    second: "Your excellence, consistency, and dedication earned you the Silver Medal as the second highest ranked fellow. Congratulations on this remarkable achievement.",
+    third: "Your strong performance secured the Bronze Medal as the third highest ranked fellow. Congratulations on being one of the cohort's top achievers.",
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Super Admin check
@@ -103,10 +120,35 @@ const GraduationManagementPage = () => {
         params.isGraduated = "true";
       }
 
-      const res = await axiosInstance.get("/admin/ambassadors", { params });
-      setFellows(res.data.data || []);
-      setTotalPages(res.data.meta?.totalPages || 1);
-      setTotalCount(res.data.meta?.total || 0);
+      const [fellowsRes, leaderboardRes] = await Promise.all([
+        axiosInstance.get("/admin/ambassadors", { params }),
+        axiosInstance.get("/admin/leaderboard"),
+      ]);
+      const leaderboardMap = new Map<string, LeaderboardEntry>(
+        (leaderboardRes.data || []).map((entry: LeaderboardEntry) => [
+          entry.id,
+          entry,
+        ])
+      );
+      const fellowsWithXp = (fellowsRes.data.data || [])
+        .map((fellow: FellowRecord) => {
+          const leaderboardEntry = leaderboardMap.get(fellow._id);
+          return {
+            ...fellow,
+            taskPoints: leaderboardEntry?.taskPoints || 0,
+            attendancePoints: leaderboardEntry?.attendancePoints || 0,
+            totalPoints: leaderboardEntry?.totalPoints || 0,
+            rank: leaderboardEntry?.rank,
+          };
+        })
+        .sort(
+          (a: FellowRecord, b: FellowRecord) =>
+            (a.rank || Number.MAX_SAFE_INTEGER) -
+            (b.rank || Number.MAX_SAFE_INTEGER)
+        );
+      setFellows(fellowsWithXp);
+      setTotalPages(fellowsRes.data.meta?.totalPages || 1);
+      setTotalCount(fellowsRes.data.meta?.total || 0);
     } catch (err) {
       console.error("Failed to load fellows:", err);
       toast.error("Failed to load fellows list.");
@@ -166,6 +208,14 @@ const GraduationManagementPage = () => {
   const allVisibleSelected =
     visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
   const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id));
+  const selectedRankedFellows = fellows
+    .filter(
+      (fellow) =>
+        selectedIds.has(fellow._id) &&
+        typeof fellow.rank === "number" &&
+        fellow.rank <= 3
+    )
+    .sort((a, b) => (a.rank || 99) - (b.rank || 99));
 
   // --- Graduation Submit ---
   const handleGraduate = async () => {
@@ -176,6 +226,7 @@ const GraduationManagementPage = () => {
         ambassadorIds: Array.from(selectedIds),
         emailSubject,
         emailBody,
+        rankingMessages,
         logoUrl: "https://res.cloudinary.com/dwryrfa1u/image/upload/v1780914626/nextIf-logo-3_c7ckde.jpg",
         graduationImageUrl: "https://res.cloudinary.com/dwryrfa1u/image/upload/v1780914568/graduated_byrtsy.png",
       });
@@ -359,6 +410,8 @@ const GraduationManagementPage = () => {
                   </th>
                   <th className="py-4 px-6">Fellow</th>
                   <th className="py-4 px-6">Institution</th>
+                  <th className="py-4 px-6 text-center">Rank</th>
+                  <th className="py-4 px-6 text-right">XP</th>
                   <th className="py-4 px-6">Status</th>
                   <th className="py-4 px-6">Graduation Date</th>
                 </tr>
@@ -428,6 +481,47 @@ const GraduationManagementPage = () => {
                         )}
                       </td>
 
+                      {/* Rank */}
+                      <td className="py-4 px-6 text-center">
+                        {fellow.rank ? (
+                          <span
+                            className={cn(
+                              "inline-flex items-center justify-center min-w-9 h-9 px-2 rounded-xl text-xs font-black border",
+                              fellow.rank === 1
+                                ? "bg-amber-100 text-amber-700 border-amber-200"
+                                : fellow.rank === 2
+                                  ? "bg-slate-100 text-slate-700 border-slate-300"
+                                  : fellow.rank === 3
+                                    ? "bg-orange-100 text-orange-700 border-orange-200"
+                                    : "bg-neutral-50 text-neutral-500 border-neutral-100"
+                            )}
+                            title={
+                              fellow.rank === 1
+                                ? "Gold Medal"
+                                : fellow.rank === 2
+                                  ? "Silver Medal"
+                                  : fellow.rank === 3
+                                    ? "Bronze Medal"
+                                    : `Rank #${fellow.rank}`
+                            }
+                          >
+                            {fellow.rank <= 3 ? fellow.rank : `#${fellow.rank}`}
+                          </span>
+                        ) : (
+                          <span className="text-neutral-300 italic">-</span>
+                        )}
+                      </td>
+
+                      {/* XP */}
+                      <td className="py-4 px-6 text-right">
+                        <div className="font-black text-neutral-900">
+                          {fellow.totalPoints || 0} XP
+                        </div>
+                        <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                          T {fellow.taskPoints || 0} / A {fellow.attendancePoints || 0}
+                        </div>
+                      </td>
+
                       {/* Status Badge */}
                       <td className="py-4 px-6">
                         <span
@@ -462,7 +556,7 @@ const GraduationManagementPage = () => {
 
                 {fellows.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-14 text-center">
+                    <td colSpan={7} className="py-14 text-center">
                       <GraduationCap size={48} className="mx-auto mb-4 text-neutral-200" />
                       <p className="font-semibold text-neutral-500">No fellows found</p>
                       <p className="text-xs text-neutral-400 mt-1">
@@ -580,6 +674,68 @@ const GraduationManagementPage = () => {
                   <p className="text-[10px] text-neutral-400">
                     This message will appear in the highlighted block of the graduation email. The logo, graduation image, award emojis, and "What happens next" section are automatically added.
                   </p>
+                </div>
+
+                {/* Top Ranked Messages */}
+                <div className="space-y-4 rounded-2xl border border-amber-100 bg-amber-50/50 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-black text-neutral-900 flex items-center gap-2">
+                        <Award size={15} className="text-amber-600" />
+                        Top Ranked Messages
+                      </p>
+                      <p className="text-[11px] text-neutral-500 mt-1 font-medium">
+                        These optional messages are added only for rank 1, rank 2, and rank 3 fellows.
+                      </p>
+                    </div>
+                    {selectedRankedFellows.length > 0 && (
+                      <span className="shrink-0 rounded-full bg-white border border-amber-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-700">
+                        {selectedRankedFellows.length} selected
+                      </span>
+                    )}
+                  </div>
+
+                  {selectedRankedFellows.length > 0 && (
+                    <div className="grid gap-2">
+                      {selectedRankedFellows.map((fellow) => (
+                        <div
+                          key={fellow._id}
+                          className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 border border-amber-100"
+                        >
+                          <span className="text-xs font-bold text-neutral-700 truncate">
+                            {fellow.firstName} {fellow.lastName}
+                          </span>
+                          <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider whitespace-nowrap">
+                            Rank #{fellow.rank} / {fellow.totalPoints || 0} XP
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {([
+                    ["first", "Gold medal message", "Rank 1 / highest graded mentee"],
+                    ["second", "Silver medal message", "Rank 2"],
+                    ["third", "Bronze medal message", "Rank 3"],
+                  ] as const).map(([key, label, helper]) => (
+                    <div key={key} className="space-y-1.5">
+                      <label className="block text-xs font-black text-neutral-700 uppercase tracking-wider">
+                        {label}
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={rankingMessages[key]}
+                        onChange={(e) =>
+                          setRankingMessages((prev) => ({
+                            ...prev,
+                            [key]: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-3 rounded-xl bg-white border border-amber-100 focus:ring-2 focus:ring-amber-400/20 focus:border-amber-400 outline-none transition-all resize-none text-sm font-medium text-neutral-700 leading-relaxed"
+                        placeholder={`Extra congratulatory note for ${helper}`}
+                      />
+                    </div>
+                  ))}
                 </div>
 
                 {/* Preview of what email looks like */}
