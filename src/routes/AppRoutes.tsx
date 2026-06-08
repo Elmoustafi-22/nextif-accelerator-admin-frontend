@@ -22,6 +22,8 @@ import LeaderboardPage from "../pages/LeaderboardPage";
 import RecordingsPage from "../pages/RecordingsPage";
 import PaymentsPage from "../pages/PaymentsPage";
 import CapstoneManagementPage from "../pages/CapstoneManagementPage";
+import CertificateManagementPage from "../pages/CertificateManagementPage";
+import GraduationManagementPage from "../pages/GraduationManagementPage";
 import Layout from "../components/Layout";
 
 // Placeholder components
@@ -72,6 +74,8 @@ const AppRoutes = () => {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/team" element={<AdminDirectoryPage />} />
           <Route path="/payments" element={<PaymentsPage />} />
+          <Route path="/certificates" element={<CertificateManagementPage />} />
+          <Route path="/graduation" element={<GraduationManagementPage />} />
           <Route path="/complaints" element={<ComplaintsPage />} />
           <Route path="/announcements" element={<AnnouncementsPage />} />
 
