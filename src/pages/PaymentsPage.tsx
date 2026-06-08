@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Navigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   CreditCard,
   Search,
@@ -55,12 +56,43 @@ const PaymentsPage = () => {
     paymentMethod: "Bank Transfer",
   });
 
+  const [dropdownSearch, setDropdownSearch] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  const filteredFellows = fellows.filter((fellow) => {
+    const fullName = `${fellow.firstName || ""} ${fellow.lastName || ""}`.toLowerCase();
+    const email = (fellow.email || "").toLowerCase();
+    const search = dropdownSearch.toLowerCase();
+    return fullName.includes(search) || email.includes(search);
+  });
+
   const handleOpenManualModal = async () => {
     setIsModalOpen(true);
     if (fellows.length === 0) {
       setFetchingFellows(true);
       try {
-        const res = await axiosInstance.get("/admin/ambassadors");
+        const res = await axiosInstance.get("/admin/ambassadors", {
+          params: { limit: 10000 },
+        });
         setFellows(res.data.data || res.data);
       } catch (err) {
         console.error("Failed to fetch fellows", err);
@@ -78,6 +110,8 @@ const PaymentsPage = () => {
     try {
       await axiosInstance.post("/payments/manual", manualPayment);
       setIsModalOpen(false);
+      setIsDropdownOpen(false);
+      setDropdownSearch("");
       setManualPayment({ ambassadorId: "", amount: "45000", paymentMethod: "Bank Transfer" });
       
       // Refresh payments
@@ -197,7 +231,11 @@ const PaymentsPage = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
             <button
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => {
+                setIsModalOpen(false);
+                setIsDropdownOpen(false);
+                setDropdownSearch("");
+              }}
               className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors"
             >
               <X size={20} />
@@ -219,19 +257,79 @@ const PaymentsPage = () => {
                     <Loader2 size={16} className="animate-spin" /> Loading fellows...
                   </div>
                 ) : (
-                  <select
-                    className="w-full px-4 py-3 rounded-xl border border-neutral-200 text-sm focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all bg-white"
-                    value={manualPayment.ambassadorId}
-                    onChange={(e) => setManualPayment({ ...manualPayment, ambassadorId: e.target.value })}
-                    required
-                  >
-                    <option value="">Select a fellow...</option>
-                    {fellows.map((fellow) => (
-                      <option key={fellow._id} value={fellow._id}>
-                        {fellow.firstName} {fellow.lastName} ({fellow.email})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen((prev) => !prev)}
+                      className="w-full px-4 py-3 rounded-xl border border-neutral-200 text-sm focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 outline-none transition-all bg-white flex items-center justify-between text-left cursor-pointer"
+                    >
+                      <span className={manualPayment.ambassadorId ? "text-neutral-900 font-medium" : "text-neutral-400"}>
+                        {manualPayment.ambassadorId
+                          ? (() => {
+                              const selected = fellows.find(f => f._id === manualPayment.ambassadorId);
+                              return selected
+                                ? `${selected.firstName} ${selected.lastName} (${selected.email})`
+                                : "Select a fellow...";
+                            })()
+                          : "Select a fellow..."}
+                      </span>
+                      <span className="ml-2 border-l pl-2 border-neutral-200 text-neutral-400 text-xs">
+                        {isDropdownOpen ? "▲" : "▼"}
+                      </span>
+                    </button>
+
+                    <AnimatePresence>
+                      {isDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute z-[60] left-0 right-0 mt-1.5 bg-white border border-neutral-200 rounded-xl shadow-xl overflow-hidden flex flex-col max-h-60"
+                        >
+                          <div className="p-2 border-b border-neutral-100 bg-neutral-50/50 sticky top-0">
+                            <input
+                              type="text"
+                              placeholder="Type to search fellow..."
+                              className="w-full px-3 py-2 border border-neutral-200 rounded-lg text-xs outline-none focus:border-blue-500 transition-colors"
+                              value={dropdownSearch}
+                              onChange={(e) => setDropdownSearch(e.target.value)}
+                              autoFocus
+                            />
+                          </div>
+                          <div className="overflow-y-auto divide-y divide-neutral-50 flex-1">
+                            {filteredFellows.length === 0 ? (
+                              <div className="px-4 py-3 text-xs text-neutral-400 text-center italic">
+                                No matching fellows found
+                              </div>
+                            ) : (
+                              filteredFellows.map((fellow) => (
+                                <button
+                                  key={fellow._id}
+                                  type="button"
+                                  onClick={() => {
+                                    setManualPayment({ ...manualPayment, ambassadorId: fellow._id });
+                                    setIsDropdownOpen(false);
+                                    setDropdownSearch("");
+                                  }}
+                                  className={`w-full px-4 py-2 text-left text-xs hover:bg-neutral-50 transition-colors flex flex-col gap-0.5 cursor-pointer ${
+                                    manualPayment.ambassadorId === fellow._id ? "bg-blue-50/50 text-blue-700 font-semibold" : "text-neutral-700"
+                                  }`}
+                                >
+                                  <span>
+                                    {fellow.firstName} {fellow.lastName}
+                                  </span>
+                                  <span className="text-neutral-400 text-[10px]">
+                                    {fellow.email}
+                                  </span>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 )}
               </div>
 
