@@ -602,7 +602,7 @@ const FellowDetailsModal = ({
                               {isSuperAdmin && !previewUrl && (
                                 <div className="space-y-2">
                                   <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-                                    Upload Cloudinary Certificate
+                                    Upload Certificate
                                   </label>
                                   <input
                                     type="file"
