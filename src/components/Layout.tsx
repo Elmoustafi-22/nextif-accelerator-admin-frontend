@@ -91,6 +91,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     titleLower === "tech lead" ||
     titleLower === "ceo" ||
     titleLower === "chief executive officer";
+  const isAttendanceTeamLead = titleLower === "attendance team lead";
+  const hasCertificateAccess = isSuperAdmin || isAttendanceTeamLead;
 
   const links = [
     { name: "Dashboard", href: "/dashboard", icon: ShieldCheck },
@@ -99,7 +101,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { name: "Manage Tasks", href: "/tasks", icon: CheckSquare },
     { name: "Capstone", href: "/capstone", icon: BookOpen },
     ...(isSuperAdmin ? [{ name: "Payments", href: "/payments", icon: CreditCard }] : []),
-    ...(isSuperAdmin ? [{ name: "Certificates", href: "/certificates", icon: Award }] : []),
+    ...(hasCertificateAccess ? [{ name: "Certificates", href: "/certificates", icon: Award }] : []),
     ...(isSuperAdmin ? [{ name: "Graduation", href: "/graduation", icon: GraduationCap }] : []),
     { name: "Complaints", href: "/complaints", icon: PlusCircle },
     { name: "Team", href: "/team", icon: Users }, // Admin Directory

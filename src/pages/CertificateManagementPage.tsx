@@ -73,12 +73,15 @@ const CertificateManagementPage = () => {
   // Drag and Drop state
   const [isDragging, setIsDragging] = useState(false);
 
-  // Verify Super Admin privileges dynamically
+  // Verify access privileges dynamically
+  // Super admins (CEO / Tech Lead) + Attendance Team Lead can access this page
   const titleLower = (user?.title || "").toLowerCase().trim();
   const isSuperAdmin =
     titleLower === "tech lead" ||
     titleLower === "ceo" ||
     titleLower === "chief executive officer";
+  const isAttendanceTeamLead = titleLower === "attendance team lead";
+  const hasCertificateAccess = isSuperAdmin || isAttendanceTeamLead;
 
   const fetchStats = async () => {
     try {
@@ -139,13 +142,13 @@ const CertificateManagementPage = () => {
 
   // Fetch when page, tab, or search changes
   useEffect(() => {
-    if (!isSuperAdmin) return;
+    if (!hasCertificateAccess) return;
     fetchFellows();
-  }, [page, activeTab, isSuperAdmin]);
+  }, [page, activeTab, hasCertificateAccess]);
 
   // Handle search with debounce/trigger
   useEffect(() => {
-    if (!isSuperAdmin) return;
+    if (!hasCertificateAccess) return;
     setPage(1);
     const delayDebounceFn = setTimeout(() => {
       fetchFellows();
@@ -156,12 +159,12 @@ const CertificateManagementPage = () => {
 
   // Load stats initially
   useEffect(() => {
-    if (!isSuperAdmin) return;
+    if (!hasCertificateAccess) return;
     fetchStats();
-  }, [isSuperAdmin]);
+  }, [hasCertificateAccess]);
 
-  // Guard routing
-  if (!isSuperAdmin) {
+  // Guard routing — only super admins and attendance team lead allowed
+  if (!hasCertificateAccess) {
     return <Navigate to="/unauthorized" replace />;
   }
 
