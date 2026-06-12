@@ -40,6 +40,7 @@ interface FellowRecord {
   taskPoints?: number;
   attendancePoints?: number;
   totalPoints?: number;
+  obtainablePoints?: number;
   rank?: number;
 }
 
@@ -48,6 +49,7 @@ interface LeaderboardEntry {
   taskPoints: number;
   attendancePoints: number;
   totalPoints: number;
+  obtainablePoints?: number;
   rank: number;
 }
 
@@ -74,7 +76,7 @@ const GraduationManagementPage = () => {
     "🎓 Congratulations on Graduating from NextIF!"
   );
   const [emailBody, setEmailBody] = useState(
-    `We are incredibly proud of your dedication and hard work throughout the NextIF Cohort 002 program.\n\nYou have officially graduated, and this milestone is a testament to your commitment to excellence in Islamic Finance.\n\nMay Allah bless your journey ahead and may this achievement open doors to remarkable opportunities in your career.\n\nWarm regards,\nThe NextIF Team`
+    `We are incredibly proud of your dedication and hard work throughout the NextIF Global Islamic Finance Career Mentorship and Accelerator Program Cohort 2.\n\nYou have officially graduated, and this milestone is a testament to your commitment to excellence in Islamic Finance.\n\nMay Allah bless your journey ahead and may this achievement open doors to remarkable opportunities in your career.\n\nWarm regards,\nThe NextIF Team`
   );
   const [rankingMessages, setRankingMessages] = useState({
     first: "Your outstanding performance placed you at the very top of this cohort. Congratulations on earning the Gold Medal as the highest ranked fellow.",
@@ -112,7 +114,7 @@ const GraduationManagementPage = () => {
   const fetchFellows = async () => {
     setLoading(true);
     try {
-      const params: any = { page, limit: 20 };
+      const params: any = { page, limit: 10000 };
 
       if (searchTerm) params.search = searchTerm;
 
@@ -138,13 +140,13 @@ const GraduationManagementPage = () => {
             taskPoints: leaderboardEntry?.taskPoints || 0,
             attendancePoints: leaderboardEntry?.attendancePoints || 0,
             totalPoints: leaderboardEntry?.totalPoints || 0,
+            obtainablePoints: leaderboardEntry?.obtainablePoints || 0,
             rank: leaderboardEntry?.rank,
           };
         })
         .sort(
           (a: FellowRecord, b: FellowRecord) =>
-            (a.rank || Number.MAX_SAFE_INTEGER) -
-            (b.rank || Number.MAX_SAFE_INTEGER)
+            (b.totalPoints || 0) - (a.totalPoints || 0)
         );
       setFellows(fellowsWithXp);
       setTotalPages(fellowsRes.data.meta?.totalPages || 1);
@@ -515,7 +517,7 @@ const GraduationManagementPage = () => {
                       {/* XP */}
                       <td className="py-4 px-6 text-right">
                         <div className="font-black text-neutral-900">
-                          {fellow.totalPoints || 0} XP
+                          {fellow.totalPoints || 0}/{fellow.obtainablePoints || 0} XP
                         </div>
                         <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
                           T {fellow.taskPoints || 0} / A {fellow.attendancePoints || 0}

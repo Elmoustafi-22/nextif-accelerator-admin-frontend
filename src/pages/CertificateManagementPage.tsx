@@ -52,7 +52,7 @@ const CertificateManagementPage = () => {
 
   // Stats
   const [stats, setStats] = useState({
-    totalPaid: 0,
+    totalFellows: 0,
     pendingUpload: 0,
     uploaded: 0,
   });
@@ -87,18 +87,18 @@ const CertificateManagementPage = () => {
     try {
       const [allRes, pendingRes, uploadedRes] = await Promise.all([
         axiosInstance.get("/admin/ambassadors", {
-          params: { hasPaidCertificate: "true", limit: 1 },
+          params: { limit: 1 },
         }),
         axiosInstance.get("/admin/ambassadors", {
           params: { hasPaidCertificate: "true", certificateStatus: "pending", limit: 1 },
         }),
         axiosInstance.get("/admin/ambassadors", {
-          params: { hasPaidCertificate: "true", certificateStatus: "uploaded", limit: 1 },
+          params: { certificateStatus: "uploaded", limit: 1 },
         }),
       ]);
 
       setStats({
-        totalPaid: allRes.data.meta?.total || 0,
+        totalFellows: allRes.data.meta?.total || 0,
         pendingUpload: pendingRes.data.meta?.total || 0,
         uploaded: uploadedRes.data.meta?.total || 0,
       });
@@ -113,7 +113,6 @@ const CertificateManagementPage = () => {
     setLoading(true);
     try {
       const params: any = {
-        hasPaidCertificate: "true",
         page,
         limit: 15,
       };
@@ -123,6 +122,7 @@ const CertificateManagementPage = () => {
       }
 
       if (activeTab === "pending") {
+        params.hasPaidCertificate = "true";
         params.certificateStatus = "pending";
       } else if (activeTab === "uploaded") {
         params.certificateStatus = "uploaded";
@@ -300,10 +300,10 @@ const CertificateManagementPage = () => {
           </div>
           <div>
             <p className="text-xs text-neutral-400 font-bold uppercase tracking-wider">
-              Total Paid Certificates
+              Total Fellows
             </p>
             <h3 className="text-2xl font-black text-neutral-900 mt-1">
-              {loadingStats ? "..." : stats.totalPaid}
+              {loadingStats ? "..." : stats.totalFellows}
             </h3>
           </div>
         </div>
@@ -314,7 +314,7 @@ const CertificateManagementPage = () => {
           </div>
           <div>
             <p className="text-xs text-neutral-400 font-bold uppercase tracking-wider">
-              Pending Uploads
+              Paid (Pending Upload)
             </p>
             <h3 className="text-2xl font-black text-neutral-900 mt-1">
               {loadingStats ? "..." : stats.pendingUpload}
@@ -328,7 +328,7 @@ const CertificateManagementPage = () => {
           </div>
           <div>
             <p className="text-xs text-neutral-400 font-bold uppercase tracking-wider">
-              Uploaded Certificates
+              Total Uploaded
             </p>
             <h3 className="text-2xl font-black text-neutral-900 mt-1">
               {loadingStats ? "..." : stats.uploaded}
@@ -351,7 +351,7 @@ const CertificateManagementPage = () => {
                   : "text-neutral-500 hover:text-neutral-950"
               }`}
             >
-              All Paid ({stats.totalPaid})
+              All Fellows ({stats.totalFellows})
             </button>
             <button
               onClick={() => handleTabChange("pending")}
@@ -361,7 +361,7 @@ const CertificateManagementPage = () => {
                   : "text-neutral-500 hover:text-neutral-950"
               }`}
             >
-              Pending ({stats.pendingUpload})
+              Paid & Pending ({stats.pendingUpload})
             </button>
             <button
               onClick={() => handleTabChange("uploaded")}
@@ -399,14 +399,15 @@ const CertificateManagementPage = () => {
                 <tr className="border-b border-neutral-100 text-xs font-black uppercase tracking-wider text-neutral-400 bg-neutral-50/50">
                   <th className="py-4 px-6">Fellow</th>
                   <th className="py-4 px-6">Institution / Course</th>
-                  <th className="py-4 px-6">Payment Date</th>
-                  <th className="py-4 px-6">Status</th>
+                  <th className="py-4 px-6">Payment Status</th>
+                  <th className="py-4 px-6">Certificate</th>
                   <th className="py-4 px-6 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-100">
                 {fellows.map((fellow) => {
                   const hasCert = !!fellow.profile?.certificateUrl;
+                  const hasPaid = !!fellow.profile?.hasPaidCertificate;
                   return (
                     <tr
                       key={fellow._id}
@@ -443,14 +444,25 @@ const CertificateManagementPage = () => {
                         </div>
                       </td>
 
-                      {/* Payment Date */}
-                      <td className="py-4 px-6 text-xs text-neutral-600 font-medium">
-                        {fellow.profile?.certificatePaymentDate ? (
-                          new Date(fellow.profile.certificatePaymentDate).toLocaleDateString("en-US", {
-                            dateStyle: "medium",
-                          })
+                      {/* Payment Status */}
+                      <td className="py-4 px-6">
+                        {hasPaid ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 w-fit">
+                              <CheckCircle2 size={12} /> Paid
+                            </span>
+                            {fellow.profile?.certificatePaymentDate && (
+                              <span className="text-[10px] text-neutral-400 pl-1 mt-0.5 font-medium">
+                                {new Date(fellow.profile.certificatePaymentDate).toLocaleDateString("en-US", {
+                                  dateStyle: "medium",
+                                })}
+                              </span>
+                            )}
+                          </div>
                         ) : (
-                          <span className="text-neutral-400 italic">No date</span>
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-neutral-100 text-neutral-500 w-fit">
+                            Unpaid
+                          </span>
                         )}
                       </td>
 
