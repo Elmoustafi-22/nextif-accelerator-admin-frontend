@@ -39,6 +39,7 @@ interface FellowRecord {
   createdAt: string;
   taskPoints?: number;
   attendancePoints?: number;
+  capstonePoints?: number;
   totalPoints?: number;
   obtainablePoints?: number;
   rank?: number;
@@ -48,6 +49,7 @@ interface LeaderboardEntry {
   id: string;
   taskPoints: number;
   attendancePoints: number;
+  capstonePoints: number;
   totalPoints: number;
   obtainablePoints?: number;
   rank: number;
@@ -139,6 +141,7 @@ const GraduationManagementPage = () => {
             ...fellow,
             taskPoints: leaderboardEntry?.taskPoints || 0,
             attendancePoints: leaderboardEntry?.attendancePoints || 0,
+            capstonePoints: leaderboardEntry?.capstonePoints || 0,
             totalPoints: leaderboardEntry?.totalPoints || 0,
             obtainablePoints: leaderboardEntry?.obtainablePoints || 0,
             rank: leaderboardEntry?.rank,
@@ -520,7 +523,7 @@ const GraduationManagementPage = () => {
                           {fellow.totalPoints || 0}/{fellow.obtainablePoints || 0} XP
                         </div>
                         <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
-                          T {fellow.taskPoints || 0} / A {fellow.attendancePoints || 0}
+                          T {fellow.taskPoints || 0} / A {fellow.attendancePoints || 0} / C {fellow.capstonePoints || 0}
                         </div>
                       </td>
 

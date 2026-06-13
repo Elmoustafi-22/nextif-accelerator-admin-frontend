@@ -12,6 +12,7 @@ interface LeaderboardEntry {
   accountStatus: string;
   taskPoints: number;
   attendancePoints: number;
+  capstonePoints: number;
   totalPoints: number;
   rank: number;
 }
@@ -274,6 +275,9 @@ const LeaderboardPage = () => {
                     <th className="py-6 px-8 text-[10px] font-black font-heading uppercase tracking-[0.2em] text-slate-400 text-center">
                       Attendance XP
                     </th>
+                    <th className="py-6 px-8 text-[10px] font-black font-heading uppercase tracking-[0.2em] text-slate-400 text-center">
+                      Capstone XP
+                    </th>
                     <th className="py-6 px-8 text-[10px] font-black font-heading uppercase tracking-[0.2em] text-indigo-600 text-right">
                       Total XP
                     </th>
@@ -293,12 +297,13 @@ const LeaderboardPage = () => {
                         <td className="py-6 px-8"><div className="h-4 bg-slate-100 rounded w-24" /></td>
                         <td className="py-6 px-8 text-center"><div className="h-6 bg-slate-100 rounded w-12 mx-auto" /></td>
                         <td className="py-6 px-8 text-center"><div className="h-6 bg-slate-100 rounded w-12 mx-auto" /></td>
+                        <td className="py-6 px-8 text-center"><div className="h-6 bg-slate-100 rounded w-12 mx-auto" /></td>
                         <td className="py-6 px-8 text-right"><div className="h-8 bg-slate-100 rounded w-16 ml-auto" /></td>
                       </tr>
                     ))
                   ) : filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-20 text-center">
+                      <td colSpan={7} className="py-20 text-center">
                         <p className="text-slate-400 font-black uppercase tracking-widest text-xs">No Results Detected</p>
                       </td>
                     </tr>
@@ -347,6 +352,11 @@ const LeaderboardPage = () => {
                         <td className="py-5 px-8 text-center">
                           <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-100 shadow-sm">
                             {entry.attendancePoints}
+                          </span>
+                        </td>
+                        <td className="py-5 px-8 text-center">
+                          <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-xl bg-purple-50 text-purple-700 text-[10px] font-black uppercase tracking-[0.2em] border border-purple-100 shadow-sm">
+                            {entry.capstonePoints}
                           </span>
                         </td>
                         <td className="py-5 px-8 text-right">
@@ -415,6 +425,9 @@ const LeaderboardPage = () => {
                         </div>
                         <div className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-[9px] font-black uppercase tracking-wider border border-emerald-100/50">
                           A: {entry.attendancePoints}
+                        </div>
+                        <div className="px-3 py-1 bg-purple-50 text-purple-700 rounded-lg text-[9px] font-black uppercase tracking-wider border border-purple-100/50">
+                          C: {entry.capstonePoints}
                         </div>
                       </div>
                       <div className="text-xl font-black font-heading text-slate-900 tracking-tighter">
