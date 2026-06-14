@@ -124,6 +124,8 @@ const CertificateManagementPage = () => {
       if (activeTab === "pending") {
         params.hasPaidCertificate = "true";
         params.certificateStatus = "pending";
+        params.sortBy = "profile.certificatePaymentDate";
+        params.sortOrder = "asc";
       } else if (activeTab === "uploaded") {
         params.certificateStatus = "uploaded";
       }
