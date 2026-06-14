@@ -149,11 +149,14 @@ const AnnouncementsPage = () => {
     // Code
     formatted = formatted.replace(/`(.*?)`/g, "<code class='bg-neutral-100 px-1.5 py-0.5 rounded text-red-600 font-mono text-xs'>$1</code>");
 
+    // Highlighted link style class
+    const linkClass = "text-blue-600 font-bold underline bg-blue-50 px-1 py-0.5 rounded transition-colors hover:bg-blue-100";
+
     // Auto-link standalone URLs
-    formatted = formatted.replace(/(?<!href=["'])(https?:\/\/[^\s<()]+)/g, "<a href='$1' class='text-blue-600 underline' target='_blank' rel='noreferrer'>$1</a>");
+    formatted = formatted.replace(/(?<!href=["'])(https?:\/\/[^\s<()]+)/g, `<a href='$1' class='${linkClass}' target='_blank' rel='noreferrer'>$1</a>`);
 
     // Markdown link
-    formatted = formatted.replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-blue-600 underline' target='_blank' rel='noreferrer'>$1</a>");
+    formatted = formatted.replace(/\[(.*?)\]\((.*?)\)/g, `<a href='$2' class='${linkClass}' target='_blank' rel='noreferrer'>$1</a>`);
 
     // Lists
     const lines = formatted.split("\n");
@@ -323,28 +326,28 @@ const AnnouncementsPage = () => {
       {/* New Announcement Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl overflow-hidden border border-neutral-100"
+              className="bg-white rounded-[2rem] sm:rounded-[2.5rem] w-full max-w-xl shadow-2xl overflow-hidden border border-neutral-100 my-auto"
             >
-              <div className="p-8 border-b border-neutral-50 flex justify-between items-center bg-neutral-50/50">
-                <div className="flex items-center gap-4">
+              <div className="p-6 sm:p-8 border-b border-neutral-50 flex justify-between items-center bg-neutral-50/50">
+                <div className="flex items-center gap-3 sm:gap-4">
                   <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-colors duration-300",
+                    "w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg transition-colors duration-300",
                     formData.targetGroup === "unpaid"
                       ? "bg-amber-500 shadow-amber-500/30"
                       : "bg-blue-600 shadow-blue-600/30"
                   )}>
-                    {formData.targetGroup === "unpaid" ? <CreditCard size={24} /> : <Megaphone size={24} />}
+                    {formData.targetGroup === "unpaid" ? <CreditCard size={20} className="sm:w-6 sm:h-6" /> : <Megaphone size={20} className="sm:w-6 sm:h-6" />}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-neutral-900 tracking-tight">
+                    <h2 className="text-lg sm:text-xl font-bold text-neutral-900 tracking-tight">
                       New Broadcast
                     </h2>
-                    <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest mt-1">
+                    <p className="text-[10px] sm:text-xs text-neutral-500 font-bold uppercase tracking-widest mt-0.5 sm:mt-1">
                       {formData.targetGroup === "unpaid" ? "Certificate Fee Reminder" : "Global Announcement"}
                     </p>
                   </div>
@@ -357,33 +360,33 @@ const AnnouncementsPage = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleSend} className="p-8 space-y-6">
+              <form onSubmit={handleSend} className="p-6 sm:p-8 space-y-4 sm:space-y-6">
 
                 {/* Target Audience Selector */}
                 <div className="space-y-2">
                   <label className="text-sm font-heading font-bold text-neutral-900">
                     Target Audience
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, targetGroup: "all" })}
                       className={cn(
-                        "flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left",
+                        "flex items-center gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all text-left",
                         formData.targetGroup === "all"
                           ? "border-blue-600 bg-blue-50 text-blue-700"
                           : "border-neutral-100 bg-white text-neutral-500 hover:border-neutral-300"
                       )}
                     >
                       <div className={cn(
-                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                        "w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0",
                         formData.targetGroup === "all" ? "bg-blue-100" : "bg-neutral-100"
                       )}>
-                        <Users size={18} />
+                        <Users size={16} className="sm:w-4.5 sm:h-4.5" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-wider">All Fellows</p>
-                        <p className="text-[11px] text-neutral-400 mt-0.5">Everyone on the platform</p>
+                        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">All Fellows</p>
+                        <p className="text-[9px] sm:text-[11px] text-neutral-400 mt-0.5">Everyone on the platform</p>
                       </div>
                     </button>
 
@@ -391,27 +394,27 @@ const AnnouncementsPage = () => {
                       type="button"
                       onClick={() => setFormData({ ...formData, targetGroup: "unpaid" })}
                       className={cn(
-                        "flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left",
+                        "flex items-center gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all text-left",
                         formData.targetGroup === "unpaid"
                           ? "border-amber-500 bg-amber-50 text-amber-700"
                           : "border-neutral-100 bg-white text-neutral-500 hover:border-neutral-300"
                       )}
                     >
                       <div className={cn(
-                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                        "w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0",
                         formData.targetGroup === "unpaid" ? "bg-amber-100" : "bg-neutral-100"
                       )}>
-                        <CreditCard size={18} />
+                        <CreditCard size={16} className="sm:w-4.5 sm:h-4.5" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-wider">Certificate Unpaid</p>
-                        <p className="text-[11px] text-neutral-400 mt-0.5">Haven't paid certificate fee</p>
+                        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Certificate Unpaid</p>
+                        <p className="text-[9px] sm:text-[11px] text-neutral-400 mt-0.5">Haven't paid certificate fee</p>
                       </div>
                     </button>
                   </div>
 
                   {formData.targetGroup === "unpaid" && (
-                    <div className="flex items-start gap-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <div className="flex items-start gap-2 text-[10px] sm:text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
                       <AlertCircle size={14} className="shrink-0 mt-0.5" />
                       <span>This will <strong>only</strong> reach fellows who have <strong>not yet paid their certificate fee</strong>. Fellows who have already paid will not receive this.</span>
                     </div>
@@ -426,25 +429,25 @@ const AnnouncementsPage = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="h-14 font-medium"
+                  className="h-12 sm:h-14 font-medium text-sm sm:text-base"
                 />
 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <label className="text-sm font-heading font-bold text-neutral-900 flex items-center gap-2">
                       Announcement Body
-                      <span className="text-[10px] bg-neutral-100 px-2 py-0.5 rounded text-neutral-400 font-heading font-bold uppercase tracking-tighter italic">
+                      <span className="text-[10px] bg-neutral-100 px-2 py-0.5 rounded text-neutral-400 font-heading font-bold uppercase tracking-tighter italic hidden xs:inline">
                         Required
                       </span>
                     </label>
 
                     {/* Tab Switcher */}
-                    <div className="flex bg-neutral-100 p-1 rounded-xl">
+                    <div className="flex bg-neutral-100 p-0.5 sm:p-1 rounded-lg sm:rounded-xl">
                       <button
                         type="button"
                         onClick={() => setEditorMode("write")}
                         className={cn(
-                          "px-3 py-1 text-xs font-bold rounded-lg transition-all",
+                          "px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg transition-all",
                           editorMode === "write"
                             ? "bg-white text-blue-600 shadow-sm"
                             : "text-neutral-500 hover:text-neutral-900"
@@ -456,7 +459,7 @@ const AnnouncementsPage = () => {
                         type="button"
                         onClick={() => setEditorMode("preview")}
                         className={cn(
-                          "px-3 py-1 text-xs font-bold rounded-lg transition-all",
+                          "px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold rounded-md sm:rounded-lg transition-all",
                           editorMode === "preview"
                             ? "bg-white text-blue-600 shadow-sm"
                             : "text-neutral-500 hover:text-neutral-900"
@@ -470,52 +473,52 @@ const AnnouncementsPage = () => {
                   {editorMode === "write" ? (
                     <div className="space-y-2">
                       {/* Formatting Bar */}
-                      <div className="flex items-center gap-1 bg-neutral-50 border border-neutral-100 p-1.5 rounded-2xl">
+                      <div className="flex items-center gap-0.5 sm:gap-1 bg-neutral-50 border border-neutral-100 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl overflow-x-auto">
                         <button
                           type="button"
                           onClick={() => insertFormat("bold")}
                           title="Bold (**bold**)"
-                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                          className="p-2 hover:bg-neutral-200/60 rounded-lg sm:rounded-xl text-neutral-600 transition-colors flex items-center justify-center shrink-0"
                         >
-                          <Bold size={16} />
+                          <Bold size={14} className="sm:w-4 sm:h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => insertFormat("italic")}
                           title="Italic (*italic*)"
-                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                          className="p-2 hover:bg-neutral-200/60 rounded-lg sm:rounded-xl text-neutral-600 transition-colors flex items-center justify-center shrink-0"
                         >
-                          <Italic size={16} />
+                          <Italic size={14} className="sm:w-4 sm:h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => insertFormat("link")}
                           title="Link ([text](url))"
-                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                          className="p-2 hover:bg-neutral-200/60 rounded-lg sm:rounded-xl text-neutral-600 transition-colors flex items-center justify-center shrink-0"
                         >
-                          <LinkIcon size={16} />
+                          <LinkIcon size={14} className="sm:w-4 sm:h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => insertFormat("list")}
                           title="Bullet List (- item)"
-                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                          className="p-2 hover:bg-neutral-200/60 rounded-lg sm:rounded-xl text-neutral-600 transition-colors flex items-center justify-center shrink-0"
                         >
-                          <List size={16} />
+                          <List size={14} className="sm:w-4 sm:h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => insertFormat("code")}
                           title="Inline Code (`code`)"
-                          className="p-2 hover:bg-neutral-200/60 rounded-xl text-neutral-600 transition-colors flex items-center justify-center"
+                          className="p-2 hover:bg-neutral-200/60 rounded-lg sm:rounded-xl text-neutral-600 transition-colors flex items-center justify-center shrink-0"
                         >
-                          <Code size={16} />
+                          <Code size={14} className="sm:w-4 sm:h-4" />
                         </button>
                       </div>
 
                       <textarea
                         ref={textareaRef}
-                        className="w-full bg-neutral-50 border border-neutral-100 rounded-3xl p-5 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all min-h-[150px] font-medium placeholder:text-neutral-300 leading-relaxed"
+                        className="w-full bg-neutral-50 border border-neutral-100 rounded-2xl sm:rounded-3xl p-4 sm:p-5 text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all min-h-[120px] sm:min-h-[150px] font-medium placeholder:text-neutral-300 leading-relaxed"
                         placeholder="Provide details about the meeting or update... Use formatting buttons above for rich styling."
                         required
                         value={formData.body}
@@ -527,7 +530,7 @@ const AnnouncementsPage = () => {
                   ) : (
                     <div 
                       dangerouslySetInnerHTML={{ __html: formatBodyPreview(formData.body) }}
-                      className="w-full bg-neutral-50/50 border border-neutral-100 rounded-3xl p-5 text-sm min-h-[200px] leading-relaxed text-neutral-700 overflow-y-auto max-h-[300px]"
+                      className="w-full bg-neutral-50/50 border border-neutral-100 rounded-2xl sm:rounded-3xl p-4 sm:p-5 text-sm min-h-[120px] sm:min-h-[200px] leading-relaxed text-neutral-700 overflow-y-auto max-h-[250px] sm:max-h-[300px]"
                     />
                   )}
                 </div>
@@ -539,32 +542,32 @@ const AnnouncementsPage = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, link: e.target.value })
                   }
-                  className="h-14 font-medium"
+                  className="h-12 sm:h-14 font-medium text-sm sm:text-base"
                   icon={<Send size={16} className="text-neutral-400" />}
                 />
 
                 <div className={cn(
-                  "flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest px-1",
+                  "flex items-center gap-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest px-1",
                   formData.targetGroup === "unpaid" ? "text-amber-500" : "text-neutral-400"
                 )}>
                   <Clock size={12} />
                   {formData.targetGroup === "unpaid"
-                    ? "Sent via Email & In-App · Certificate unpaid fellows only"
-                    : "Sent via Email & In-App · All fellows"}
+                    ? "Email & In-App · Certificate unpaid only"
+                    : "Email & In-App · All fellows"}
                 </div>
 
                 {success && recipientCount !== null && (
-                  <div className="flex items-center gap-2 text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl p-3">
+                  <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl p-3">
                     <CheckCircle2 size={14} className="shrink-0" />
                     <span>Successfully sent to <strong>{recipientCount}</strong> {recipientCount === 1 ? "fellow" : "fellows"}.</span>
                   </div>
                 )}
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 pt-2 sm:pt-4">
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1 h-14 rounded-2xl font-bold"
+                    className="flex-1 h-12 sm:h-14 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base"
                     onClick={() => setIsModalOpen(false)}
                   >
                     Cancel
@@ -572,7 +575,7 @@ const AnnouncementsPage = () => {
                   <Button
                     type="submit"
                     className={cn(
-                      "flex-1 h-14 rounded-2xl font-bold transition-all duration-500",
+                      "flex-1 h-12 sm:h-14 rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base transition-all duration-500",
                       success
                         ? "bg-green-500 hover:bg-green-600 shadow-green-500/20 shadow-xl"
                         : formData.targetGroup === "unpaid"
@@ -582,10 +585,10 @@ const AnnouncementsPage = () => {
                     isLoading={isSubmitting}
                     disabled={success}
                     rightIcon={
-                      success ? <CheckCircle2 size={20} /> : <Send size={20} />
+                      success ? <CheckCircle2 size={18} className="sm:w-5 sm:h-5" /> : <Send size={18} className="sm:w-5 sm:h-5" />
                     }
                   >
-                    {success ? "Broadcasted!" : formData.targetGroup === "unpaid" ? "Send Certificate Fee Reminder" : "Send Broadcast"}
+                    {success ? "Broadcasted!" : formData.targetGroup === "unpaid" ? "Send Reminder" : "Send Broadcast"}
                   </Button>
                 </div>
               </form>
