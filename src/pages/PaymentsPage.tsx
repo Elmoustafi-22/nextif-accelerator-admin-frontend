@@ -17,6 +17,8 @@ import {
   Download,
   Plus,
   X,
+  Pencil,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import axiosInstance from "../api/axiosInstance";
@@ -29,6 +31,7 @@ interface PaymentRecord {
   currency: string;
   status: string;
   receiptUrl?: string;
+  metadata?: { paymentMethod?: string; [key: string]: any };
   ambassadorId: {
     _id: string;
     firstName: string;
@@ -55,6 +58,12 @@ const PaymentsPage = () => {
     amount: "45000",
     paymentMethod: "Bank Transfer",
   });
+
+  // Edit manual payment state
+  const [editTarget, setEditTarget] = useState<PaymentRecord | null>(null);
+  const [editAmount, setEditAmount] = useState("");
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [editSuccess, setEditSuccess] = useState(false);
 
   const [dropdownSearch, setDropdownSearch] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -140,6 +149,40 @@ const PaymentsPage = () => {
       alert("Failed to regenerate receipt. Check console for details.");
     } finally {
       setRegenerating((prev) => ({ ...prev, [reference]: false }));
+    }
+  };
+
+  const handleOpenEdit = (payment: PaymentRecord) => {
+    setEditTarget(payment);
+    // Pre-fill with human-readable amount (stored in kobo, display in naira)
+    setEditAmount(String(payment.amount / 100));
+    setEditSuccess(false);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTarget) return;
+    setSubmittingEdit(true);
+    try {
+      await axiosInstance.patch(`/payments/manual/${editTarget._id}`, { amount: editAmount });
+      // Optimistically update the table row
+      setPayments((prev) =>
+        prev.map((p) =>
+          p._id === editTarget._id
+            ? { ...p, amount: Math.round(Number(editAmount) * 100) }
+            : p
+        )
+      );
+      setEditSuccess(true);
+      setTimeout(() => {
+        setEditTarget(null);
+        setEditSuccess(false);
+      }, 2000);
+    } catch (err: any) {
+      console.error("Failed to update manual payment:", err);
+      alert(err.response?.data?.message || "Error updating payment.");
+    } finally {
+      setSubmittingEdit(false);
     }
   };
 
@@ -472,9 +515,11 @@ const PaymentsPage = () => {
                     <th className="py-4 px-6">Fellow</th>
                     <th className="py-4 px-6">Reference ID</th>
                     <th className="py-4 px-6">Amount</th>
+                    <th className="py-4 px-6">Method</th>
                     <th className="py-4 px-6">Status</th>
                     <th className="py-4 px-6">Date</th>
                     <th className="py-4 px-6">Receipt</th>
+                    <th className="py-4 px-6">Edit</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
@@ -508,10 +553,20 @@ const PaymentsPage = () => {
                         )}
                       </td>
                       <td className="py-4 px-6 font-mono text-xs text-neutral-600">
-                        {payment.reference}
+                        <div className="flex flex-col gap-0.5">
+                          <span>{payment.reference}</span>
+                          {payment.reference.startsWith("MANUAL-") && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded w-fit">
+                              Manual · {payment.metadata?.paymentMethod || "Manual"}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-4 px-6 font-bold text-neutral-900">
                         {formatCurrency(payment.amount / 100, payment.currency)}
+                      </td>
+                      <td className="py-4 px-6 text-xs text-neutral-500">
+                        {payment.metadata?.paymentMethod || (payment.reference.startsWith("MANUAL-") ? "Manual" : "Paystack")}
                       </td>
                       <td className="py-4 px-6">
                         <span
@@ -570,6 +625,20 @@ const PaymentsPage = () => {
                           <span className="text-neutral-400 text-xs font-medium">—</span>
                         )}
                       </td>
+                      {/* Edit button — only for MANUAL records */}
+                      <td className="py-4 px-6">
+                        {payment.reference.startsWith("MANUAL-") ? (
+                          <button
+                            onClick={() => handleOpenEdit(payment)}
+                            title="Edit amount (manual records only)"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-bold text-neutral-600 bg-white hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700 active:scale-95 transition-all"
+                          >
+                            <Pencil size={13} /> Edit
+                          </button>
+                        ) : (
+                          <span className="text-neutral-300 text-xs">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
 
@@ -590,6 +659,91 @@ const PaymentsPage = () => {
           </div>
         </>
       )}
+
+      {/* Edit Manual Payment Modal */}
+      <AnimatePresence>
+        {editTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative"
+            >
+              <button
+                onClick={() => setEditTarget(null)}
+                className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center">
+                  <Pencil size={20} />
+                </div>
+                <h2 className="text-xl font-heading font-black text-neutral-900">
+                  Edit Manual Payment
+                </h2>
+              </div>
+              <p className="text-sm text-neutral-500 mb-5">
+                Correcting record for{" "}
+                <span className="font-bold text-neutral-800">
+                  {editTarget.ambassadorId
+                    ? `${editTarget.ambassadorId.firstName} ${editTarget.ambassadorId.lastName}`
+                    : "Unknown Fellow"}
+                </span>
+              </p>
+
+              {/* Safety warning */}
+              <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5">
+                <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-amber-800 space-y-1">
+                  <p className="font-bold">No emails or notifications will be sent.</p>
+                  <p>Only the stored amount will be corrected. The receipt PDF will be regenerated silently in the background.</p>
+                  <p className="font-mono text-[10px] text-amber-600 mt-1">Ref: {editTarget.reference}</p>
+                </div>
+              </div>
+
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-neutral-700 mb-1.5">
+                    Corrected Amount (₦)
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 0 for scholarship/waiver"
+                    value={editAmount}
+                    onChange={(e) => setEditAmount(e.target.value)}
+                    required
+                    min="0"
+                  />
+                  <p className="text-[11px] text-neutral-400 mt-1.5 pl-1">
+                    Enter <strong>0</strong> for scholarships or waivers that should be free.
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submittingEdit || editSuccess}
+                  className={`w-full flex items-center justify-center gap-2 py-3 font-bold rounded-xl active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-sm ${
+                    editSuccess
+                      ? "bg-green-500 text-white shadow-green-200"
+                      : "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200"
+                  }`}
+                >
+                  {submittingEdit ? (
+                    <><Loader2 size={18} className="animate-spin" /> Saving...</>
+                  ) : editSuccess ? (
+                    <><CheckCircle2 size={18} /> Amount Updated!</>
+                  ) : (
+                    <>Save Correction</>
+                  )}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

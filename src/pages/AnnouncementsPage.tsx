@@ -14,6 +14,8 @@ import {
   List,
   Code,
   Link as LinkIcon,
+  CreditCard,
+  AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../api/axiosInstance";
@@ -26,7 +28,8 @@ const AnnouncementsPage = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ title: "", body: "", link: "" });
+  const [formData, setFormData] = useState({ title: "", body: "", link: "", targetGroup: "all" });
+  const [recipientCount, setRecipientCount] = useState<number | null>(null);
   const [success, setSuccess] = useState(false);
   
   // Announcement Rich-formatting states
@@ -62,15 +65,17 @@ const AnnouncementsPage = () => {
     setSuccess(false);
 
     try {
-      await axiosInstance.post("/notifications/announcement", formData);
+      const res = await axiosInstance.post("/notifications/announcement", formData);
+      setRecipientCount(res.data?.recipientCount ?? null);
       setSuccess(true);
       setTimeout(() => {
         setIsModalOpen(false);
-        setFormData({ title: "", body: "", link: "" });
+        setFormData({ title: "", body: "", link: "", targetGroup: "all" });
         setEditorMode("write");
         setSuccess(false);
+        setRecipientCount(null);
         fetchHistory();
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error("Error sending announcement:", error);
     } finally {
@@ -189,7 +194,7 @@ const AnnouncementsPage = () => {
             Broadcast Announcements
           </h1>
           <p className="text-neutral-500 text-sm mt-1">
-            Send global alerts to all active fellows.
+            Send targeted alerts to all fellows or only those who haven't paid their certificate fee.
           </p>
         </div>
         <Button
@@ -295,11 +300,13 @@ const AnnouncementsPage = () => {
                         <p className="text-sm text-neutral-500 leading-relaxed max-w-2xl">
                           {item.body}
                         </p>
-                        {item.link && (
-                          <div className="mt-3 flex items-center gap-2 text-[10px] text-blue-600 font-bold uppercase tracking-widest">
-                            <Send size={12} /> Link: {item.link}
-                          </div>
-                        )}
+                        <div className="mt-3 flex items-center gap-3 flex-wrap">
+                          {item.link && (
+                            <div className="flex items-center gap-2 text-[10px] text-blue-600 font-bold uppercase tracking-widest">
+                              <Send size={12} /> Link: {item.link}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div className="text-neutral-300 group-hover:text-blue-600 transition-colors self-center">
                         <ChevronRight size={20} />
@@ -325,15 +332,20 @@ const AnnouncementsPage = () => {
             >
               <div className="p-8 border-b border-neutral-50 flex justify-between items-center bg-neutral-50/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30">
-                    <Megaphone size={24} />
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-colors duration-300",
+                    formData.targetGroup === "unpaid"
+                      ? "bg-amber-500 shadow-amber-500/30"
+                      : "bg-blue-600 shadow-blue-600/30"
+                  )}>
+                    {formData.targetGroup === "unpaid" ? <CreditCard size={24} /> : <Megaphone size={24} />}
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-neutral-900 tracking-tight">
                       New Broadcast
                     </h2>
                     <p className="text-xs text-neutral-500 font-bold uppercase tracking-widest mt-1">
-                      Global Announcement
+                      {formData.targetGroup === "unpaid" ? "Certificate Fee Reminder" : "Global Announcement"}
                     </p>
                   </div>
                 </div>
@@ -346,9 +358,69 @@ const AnnouncementsPage = () => {
               </div>
 
               <form onSubmit={handleSend} className="p-8 space-y-6">
+
+                {/* Target Audience Selector */}
+                <div className="space-y-2">
+                  <label className="text-sm font-heading font-bold text-neutral-900">
+                    Target Audience
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, targetGroup: "all" })}
+                      className={cn(
+                        "flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left",
+                        formData.targetGroup === "all"
+                          ? "border-blue-600 bg-blue-50 text-blue-700"
+                          : "border-neutral-100 bg-white text-neutral-500 hover:border-neutral-300"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                        formData.targetGroup === "all" ? "bg-blue-100" : "bg-neutral-100"
+                      )}>
+                        <Users size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider">All Fellows</p>
+                        <p className="text-[11px] text-neutral-400 mt-0.5">Everyone on the platform</p>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, targetGroup: "unpaid" })}
+                      className={cn(
+                        "flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left",
+                        formData.targetGroup === "unpaid"
+                          ? "border-amber-500 bg-amber-50 text-amber-700"
+                          : "border-neutral-100 bg-white text-neutral-500 hover:border-neutral-300"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                        formData.targetGroup === "unpaid" ? "bg-amber-100" : "bg-neutral-100"
+                      )}>
+                        <CreditCard size={18} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider">Certificate Unpaid</p>
+                        <p className="text-[11px] text-neutral-400 mt-0.5">Haven't paid certificate fee</p>
+                      </div>
+                    </button>
+                  </div>
+
+                  {formData.targetGroup === "unpaid" && (
+                    <div className="flex items-start gap-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                      <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                      <span>This will <strong>only</strong> reach fellows who have <strong>not yet paid their certificate fee</strong>. Fellows who have already paid will not receive this.</span>
+                    </div>
+                  )}
+                </div>
+
                 <Input
                   label="Announcement Title"
-                  placeholder="e.g. Upcoming Meeting Reminder"
+                  placeholder={formData.targetGroup === "unpaid" ? "e.g. Action Required: Pay Your Certificate Fee" : "e.g. Upcoming Meeting Reminder"}
                   required
                   value={formData.title}
                   onChange={(e) =>
@@ -471,10 +543,22 @@ const AnnouncementsPage = () => {
                   icon={<Send size={16} className="text-neutral-400" />}
                 />
 
-                <div className="flex items-center gap-2 text-[10px] text-neutral-400 font-bold uppercase tracking-widest px-1">
+                <div className={cn(
+                  "flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest px-1",
+                  formData.targetGroup === "unpaid" ? "text-amber-500" : "text-neutral-400"
+                )}>
                   <Clock size={12} />
-                  Sent via Email & In-App to all fellows
+                  {formData.targetGroup === "unpaid"
+                    ? "Sent via Email & In-App · Certificate unpaid fellows only"
+                    : "Sent via Email & In-App · All fellows"}
                 </div>
+
+                {success && recipientCount !== null && (
+                  <div className="flex items-center gap-2 text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-xl p-3">
+                    <CheckCircle2 size={14} className="shrink-0" />
+                    <span>Successfully sent to <strong>{recipientCount}</strong> {recipientCount === 1 ? "fellow" : "fellows"}.</span>
+                  </div>
+                )}
 
                 <div className="flex gap-4 pt-4">
                   <Button
@@ -491,6 +575,8 @@ const AnnouncementsPage = () => {
                       "flex-1 h-14 rounded-2xl font-bold transition-all duration-500",
                       success
                         ? "bg-green-500 hover:bg-green-600 shadow-green-500/20 shadow-xl"
+                        : formData.targetGroup === "unpaid"
+                        ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20 shadow-xl"
                         : "shadow-blue-600/20 shadow-xl"
                     )}
                     isLoading={isSubmitting}
@@ -499,7 +585,7 @@ const AnnouncementsPage = () => {
                       success ? <CheckCircle2 size={20} /> : <Send size={20} />
                     }
                   >
-                    {success ? "Broadcasted!" : "Send Broadcast"}
+                    {success ? "Broadcasted!" : formData.targetGroup === "unpaid" ? "Send Certificate Fee Reminder" : "Send Broadcast"}
                   </Button>
                 </div>
               </form>
