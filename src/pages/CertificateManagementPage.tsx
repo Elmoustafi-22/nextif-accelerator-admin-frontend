@@ -157,7 +157,7 @@ const CertificateManagementPage = () => {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
+  }, [searchTerm, hasCertificateAccess]);
 
   // Load stats initially
   useEffect(() => {

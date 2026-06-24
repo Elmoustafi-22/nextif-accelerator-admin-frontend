@@ -268,8 +268,9 @@ const PaymentsPage = () => {
         <p className="text-neutral-500 mt-1">
           Monitor certificate program transactions, aggregate revenues, and transaction states.
         </p>
+      </div>
 
-      {/* Manual Payment Modal */}
+      {/* Bug 2 fix: Manual Payment Modal is now OUTSIDE the header div */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
@@ -426,7 +427,6 @@ const PaymentsPage = () => {
           </div>
         </div>
       )}
-    </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center min-h-[400px]">
@@ -644,7 +644,8 @@ const PaymentsPage = () => {
 
                   {filteredPayments.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-neutral-400">
+                      {/* Bug 3 fix: colSpan corrected from 6 to 8 (table has 8 columns) */}
+                      <td colSpan={8} className="py-12 text-center text-neutral-400">
                         <CreditCard size={48} className="mx-auto mb-4 opacity-30" />
                         <p className="font-semibold text-neutral-500">No transactions found</p>
                         <p className="text-xs text-neutral-400 mt-1">
